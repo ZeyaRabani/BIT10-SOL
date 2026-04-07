@@ -1,0 +1,61 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+# /node_modules
+node_modules
+# /.pnp
+.pnp
+dist
+.pnp.js
+# /target
+target
+
+# /data
+# /data_old
+# /data_test
+data
+data_old
+data_test
+
+# testing
+# /coverage
+coverage
+
+# database
+/prisma/db.sqlite
+/prisma/db.sqlite-journal
+db.sqlite
+
+# next.js
+# /.next/
+.next/
+# /out/
+out/
+next-env.d.ts
+
+# production
+# /build
+build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# idea files
+.idea
