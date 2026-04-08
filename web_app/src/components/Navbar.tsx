@@ -8,7 +8,6 @@ import { AnimatedBackground } from '@/components/ui/animated-background';
 import ResponsiveNavbar from './ResponsiveNavbar';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import WalletBtn from './WalletBtn';
 
 interface NavLink {
     title: string;
@@ -179,13 +178,9 @@ function NavbarContent() {
                     </AnimatedBackground>
 
                     <div>
-                        {appMode ? (
-                            <WalletBtn />
-                        ) : (
-                            <Link href='/mint' passHref>
-                                <Button className='font-semibold'>Launch App</Button>
-                            </Link>
-                        )}
+                        <Link href='/mint' passHref>
+                            <Button className='font-semibold'>Launch App</Button>
+                        </Link>
                     </div>
                 </div>
 

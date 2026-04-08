@@ -1,6 +1,5 @@
 import '@/styles/globals.css'
 import { cn, constructMetadata } from '@/lib/utils'
-import { CSPostHogProvider } from '@/app/_analytics/provider'
 import Providers from '@/app/_provider/Providers'
 import ScrollToTopBtn from '@/components/ScrollToTopBtn'
 import { Toaster } from '@/components/ui/sonner'

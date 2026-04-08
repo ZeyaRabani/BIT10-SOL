@@ -6,7 +6,6 @@ import { Menu, X, SettingsIcon, LandmarkIcon, Coins, BriefcaseBusiness, BookText
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import WalletBtn from './WalletBtn';
 
 const links = {
     web: [
@@ -142,17 +141,11 @@ export default function ResponsiveNavbar() {
                                             </div>
                                         </Link>
                                     ))}
-                                    {appMode ? (
-                                        <div className='border-b-2 pb-2 w-full'>
-                                            <WalletBtn />
-                                        </div>
-                                    ) : (
-                                        <div className='border-b-2 pb-2 cursor-pointer w-full'>
-                                            <Link href='/mint' passHref>
-                                                <Button className='w-full'>Launch App</Button>
-                                            </Link>
-                                        </div>
-                                    )}
+                                    <div className='border-b-2 pb-2 cursor-pointer w-full'>
+                                        <Link href='/mint' passHref>
+                                            <Button className='w-full'>Launch App</Button>
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>

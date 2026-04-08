@@ -5,6 +5,7 @@ import MaxWidthWrapper from '@/components/MaxWidthWrapper';
 import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
 import Image, { type StaticImageData } from 'next/image';
 import BIT10Img from '@/assets/tokens/bit10.svg';
+import BIT10SOLImg from '@/assets/tokens/bit10-sol-1.svg';
 import BTCImg from '@/assets/tokens/btc.svg';
 import ETHImg from '@/assets/tokens/eth.svg';
 import XRPImg from '@/assets/tokens/xrp.svg';
@@ -15,6 +16,17 @@ import DogeImg from '@/assets/tokens/doge.svg';
 import ADAImg from '@/assets/tokens/cardano.svg';
 import BCHImg from '@/assets/tokens/bch.svg';
 import AVAXImg from '@/assets/tokens/avax.svg';
+
+import LINKImg from '@/assets/tokens/link.svg';
+import WLFIImg from '@/assets/tokens/wlfi.svg';
+import UNIImg from '@/assets/tokens/uni.svg';
+import AAVEImg from '@/assets/tokens/aave.svg';
+import RENDERImg from '@/assets/tokens/render.svg';
+import GTImg from '@/assets/tokens/gt.svg';
+import TRUMPImg from '@/assets/tokens/trump.svg';
+import PUMPImg from '@/assets/tokens/pump.svg';
+import JUPImg from '@/assets/tokens/jup.svg';
+
 import DefinityDevImg from '@/assets/home/DFINITYDev.jpg';
 import EasyaAppImg from '@/assets/home/easya_app.jpg';
 import ICPImg from '@/assets/home/ICP.svg';
@@ -137,7 +149,6 @@ const comparisonData: ComparisonRow[] = [
 const StatusIcon = ({ status }: { status: FeatureStatus }) => {
     switch (status) {
         case 'yes':
-            // @ts-expect-error
             return <div className='w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center'>
                 <CheckIcon className='w-4 h-4 text-primary' />
             </div>;
@@ -167,12 +178,7 @@ const features = [
         icon: RefreshCwIcon,
         title: 'Daily Rebalancing',
         description: 'Daily rebalancing keeps your portfolio aligned with market cap weights.',
-    },
-    {
-        icon: ZapIcon,
-        title: 'One Transaction',
-        description: 'No swapping 10 tokens. Mint BIT10, own the top 10.',
-    },
+    }
 ];
 
 const stats = [
@@ -256,14 +262,14 @@ export default function Page() {
                             transition={{ duration: 0.5, ease: 'easeInOut' }}>
                             <Image src={BIT10Img as StaticImageData} alt='logo' width={85} height={85} className='border-2 w-16 md:w-16 lg:w-20 rounded-full' />
                         </motion.div>
-                        {/* <motion.div
+                        <motion.div
                             initial={{ opacity: 0.0, y: 40 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, ease: 'easeInOut' }}
                             className='text-xl font-semibold text-primary'>
                             BIT10.TOP
-                        </motion.div> */}
+                        </motion.div>
                     </div>
                     <motion.div
                         initial={{ opacity: 0, y: 40 }}
@@ -281,6 +287,56 @@ export default function Page() {
                             viewport={{ once: true }}
                             className='flex flex-row items-center justify-center -space-x-3 w-full'>
                             {[BTCImg, ETHImg, XRPImg, BNBImg, SOLImg, TRXImg, DogeImg, ADAImg, BCHImg, AVAXImg].map((imgSrc, index) => (
+                                <motion.div key={index} variants={imageVariants}>
+                                    <Image src={imgSrc as StaticImageData} alt='logo' width={85} height={85} className='border-2 rounded-full w-9 md:w-16 lg:w-20 h-full object-cover bg-gray-200' />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                        {/* <motion.div
+                            initial={{ opacity: 0.0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, ease: 'easeInOut' }}
+                            className='text-xl font-semibold text-center'>
+                            Top 10 cryptocurrencies in a single, secure, over-collateralized token.
+                        </motion.div> */}
+                    </div>
+                </div>
+
+                <div className='flex flex-col md:flex-row md:space-x-4 items-center justify-center pt-6 px-4'>
+                    <div className='flex flex-col space-y-2 items-center'>
+                        <motion.div
+                            initial={{ opacity: 0.0, x: -40 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, ease: 'easeInOut' }}>
+                            <Image src={BIT10SOLImg as StaticImageData} alt='logo' width={85} height={85} className='w-16 md:w-16 lg:w-20' />
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0.0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, ease: 'easeInOut' }}
+                            className='text-xl font-semibold text-primary'>
+                            BIT10.SOL
+                        </motion.div>
+                    </div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.3, duration: 0.8, ease: 'easeInOut' }}
+                        className='text-6xl md:-mt-3'>
+                        =
+                    </motion.div>
+                    <div className='flex flex-col space-y-2 items-start justify-center'>
+                        <motion.div
+                            variants={containerVariants}
+                            initial='hidden'
+                            whileInView='visible'
+                            viewport={{ once: true }}
+                            className='flex flex-row items-center justify-center -space-x-3 w-full'>
+                            {[SOLImg, LINKImg, WLFIImg, UNIImg, AAVEImg, RENDERImg, GTImg, TRUMPImg, PUMPImg, JUPImg].map((imgSrc, index) => (
                                 <motion.div key={index} variants={imageVariants}>
                                     <Image src={imgSrc as StaticImageData} alt='logo' width={85} height={85} className='border-2 rounded-full w-9 md:w-16 lg:w-20 h-full object-cover bg-gray-200' />
                                 </motion.div>
@@ -501,7 +557,7 @@ export default function Page() {
                             whileInView='visible'
                             viewport={{ once: true }}
                             variants={containerVariants}
-                            className='grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-8'>
+                            className='grid grid-cols-3 gap-4 md:gap-8 mb-8'>
                             {stats.map((stat) => (
                                 <motion.div
                                     key={stat.label}
@@ -520,7 +576,7 @@ export default function Page() {
                             whileInView='visible'
                             viewport={{ once: true }}
                             variants={containerVariants}
-                            className='grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 w-full'>
+                            className='grid md:grid-cols-3 gap-6 md:gap-10 w-full'>
                             {features.map((features, index) => (
                                 <motion.div
                                     variants={cardVariants}
