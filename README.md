@@ -18,3 +18,24 @@ BIT10 SOL is designed for:
 - Traders who prefer index-style investing over active management
 
 By combining the strengths of multiple top Solana projects into a single asset, BIT10 SOL aims to make ecosystem investing **simpler, smarter, and more scalable**.
+
+## 🏁 Getting Started
+
+To start using BIT10, follow these steps:
+
+1. **Navigate to web_app**:
+    ```bash
+    cd web_app
+    ```
+
+2. **Install Dependencies**:
+    ```bash
+    npm install
+    ```
+
+3. **Run the App**:
+    ```bash
+    npm run dev
+    ```
+
+3. **Access** the app at [http://localhost:3000](http://localhost:3000).
