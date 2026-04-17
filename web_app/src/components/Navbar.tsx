@@ -18,13 +18,13 @@ interface NavLink {
 const links = {
     web: [
         { title: 'How It Works', link: '?id=how-it-works' },
-        { title: 'Proof-of-Reserves', link: '?id=reserves' },
-        { title: 'Investment Calculator', link: '/investment-calculator' },
+        // { title: 'Proof-of-Reserves', link: '?id=reserves' },
+        // { title: 'Investment Calculator', link: '/investment-calculator' },
         { title: 'GitBook', link: '/gitbook' }
     ] as NavLink[],
 
     app: [
-        { title: 'Mint BIT10.TOP', link: '/mint' },
+        { title: 'Mint BIT10.SOL', link: '/mint' },
         { title: 'Portfolio', link: '/portfolio' },
         { title: 'Collateral', link: '/collateral' },
         { title: 'Rewards ✨', link: '/rewards', isRewards: true }
@@ -177,11 +177,11 @@ function NavbarContent() {
                         })}
                     </AnimatedBackground>
 
-                    <div>
+                    {/* <div>
                         <Link href='/mint' passHref>
                             <Button className='font-semibold'>Launch App</Button>
                         </Link>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className='flex space-x-2 justify-between items-center ml-2'>

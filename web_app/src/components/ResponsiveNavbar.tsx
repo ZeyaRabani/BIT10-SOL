@@ -10,12 +10,12 @@ import Image from 'next/image';
 const links = {
     web: [
         { title: 'How It Works', link: '?id=how-it-works', icon: SettingsIcon },
-        { title: 'Proof-of-Reserves', link: '?id=reserves', icon: LandmarkIcon },
-        { title: 'Investment Calculator', link: '/investment-calculator', icon: CalculatorIcon },
+        // { title: 'Proof-of-Reserves', link: '?id=reserves', icon: LandmarkIcon },
+        // { title: 'Investment Calculator', link: '/investment-calculator', icon: CalculatorIcon },
         { title: 'GitBook', link: '/gitbook', icon: BookText }
     ],
     app: [
-        { title: 'Mint BIT10.TOP', link: '/mint', icon: Coins },
+        { title: 'Mint BIT10.SOL', link: '/mint', icon: Coins },
         { title: 'Portfolio', link: '/portfolio', icon: BriefcaseBusiness },
         { title: 'Collateral', link: '/collateral', icon: Landmark },
         { title: 'Rewards', link: '/rewards', icon: GiftIcon }
@@ -141,11 +141,11 @@ export default function ResponsiveNavbar() {
                                             </div>
                                         </Link>
                                     ))}
-                                    <div className='border-b-2 pb-2 cursor-pointer w-full'>
+                                    {/* <div className='border-b-2 pb-2 cursor-pointer w-full'>
                                         <Link href='/mint' passHref>
                                             <Button className='w-full'>Launch App</Button>
                                         </Link>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         </div>

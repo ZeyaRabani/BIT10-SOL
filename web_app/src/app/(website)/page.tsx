@@ -198,7 +198,7 @@ const steps = [
         icon: ArrowDownUpIcon,
         step: '02',
         title: 'BIT10 Does the Rest',
-        description: 'Your deposit is automatically converted to a balanced portfolio of the top 10 cryptos.',
+        description: 'Your deposit is automatically converted to a balanced portfolio of the top 10 solana tokens.',
     },
     {
         icon: PieChartIcon,
@@ -268,7 +268,7 @@ export default function Page() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, ease: 'easeInOut' }}
                             className='text-xl font-semibold text-primary'>
-                            BIT10.TOP
+                            BIT10.SOL
                         </motion.div>
                     </div>
                     <motion.div
@@ -348,7 +348,7 @@ export default function Page() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, ease: 'easeInOut' }}
                             className='text-xl font-semibold text-center'>
-                            Top 10 cryptocurrencies in a single, secure, over-collateralized token.
+                            Top 10 Solana Tokens in a single, secure, over-collateralized token.
                         </motion.div> */}
                     </div>
                 </div>
@@ -539,7 +539,7 @@ export default function Page() {
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.2, duration: 0.8 }}
                                 className='text-3xl md:text-5xl font-bold mb-6'>
-                                BIT10.TOP -{' '}
+                                BIT10.SOL -{' '}
                                 <span className='text-primary'>The Future of Index Investing</span>
                             </motion.h2>
                             <motion.p
