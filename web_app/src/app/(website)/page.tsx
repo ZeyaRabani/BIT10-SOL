@@ -167,7 +167,7 @@ const features = [
     {
         icon: ShieldIcon,
         title: 'Native Assets Only',
-        description: 'No wrapped tokens. You own the actual BTC, ETH, SOL - not IOUs.',
+        description: 'No wrapped tokens. You own the actual SOL, LINK, UNI - not IOUs.',
     },
     {
         icon: EyeIcon,
@@ -268,7 +268,7 @@ export default function Page() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, ease: 'easeInOut' }}
                             className='text-xl font-semibold text-primary'>
-                            BIT10.SOL
+                            BIT10.TOP
                         </motion.div>
                     </div>
                     <motion.div
