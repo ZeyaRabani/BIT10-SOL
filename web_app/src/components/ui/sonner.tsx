@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'

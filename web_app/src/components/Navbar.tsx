@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/animated-background';
 import ResponsiveNavbar from './ResponsiveNavbar';
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
 interface NavLink {
@@ -19,7 +18,7 @@ const links = {
     web: [
         { title: 'How It Works', link: '?id=how-it-works' },
         // { title: 'Proof-of-Reserves', link: '?id=reserves' },
-        // { title: 'Investment Calculator', link: '/investment-calculator' },
+        { title: 'Investment Calculator', link: '/investment-calculator' },
         { title: 'GitBook', link: '/gitbook' }
     ] as NavLink[],
 

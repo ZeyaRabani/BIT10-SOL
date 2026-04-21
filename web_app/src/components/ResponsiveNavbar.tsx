@@ -1,17 +1,16 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, SettingsIcon, LandmarkIcon, Coins, BriefcaseBusiness, BookText, CalculatorIcon, Landmark, GiftIcon } from 'lucide-react';
+import { Menu, X, SettingsIcon, Coins, BriefcaseBusiness, BookText, CalculatorIcon, Landmark, GiftIcon } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
 const links = {
     web: [
         { title: 'How It Works', link: '?id=how-it-works', icon: SettingsIcon },
         // { title: 'Proof-of-Reserves', link: '?id=reserves', icon: LandmarkIcon },
-        // { title: 'Investment Calculator', link: '/investment-calculator', icon: CalculatorIcon },
+        { title: 'Investment Calculator', link: '/investment-calculator', icon: CalculatorIcon },
         { title: 'GitBook', link: '/gitbook', icon: BookText }
     ],
     app: [

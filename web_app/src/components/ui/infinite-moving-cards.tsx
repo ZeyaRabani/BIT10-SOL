@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { cn } from '@/lib/utils'
-import React, { useEffect, useState } from 'react'
-import Image, { type StaticImageData } from 'next/image'
+import { cn } from '@/lib/utils';
+import React, { useEffect, useState } from 'react';
+import Image, { type StaticImageData } from 'next/image';
 
 export const InfiniteMovingCards = ({ items, direction = 'left', speed = 'fast', pauseOnHover = true, className }: {
     items: {

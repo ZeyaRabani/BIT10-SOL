@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import MaxWidthWrapper from '@/components/MaxWidthWrapper';
 import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
@@ -17,23 +18,31 @@ import ADAImg from '@/assets/tokens/cardano.svg';
 import BCHImg from '@/assets/tokens/bch.svg';
 import AVAXImg from '@/assets/tokens/avax.svg';
 
-import LINKImg from '@/assets/tokens/link.svg';
 import WLFIImg from '@/assets/tokens/wlfi.svg';
-import UNIImg from '@/assets/tokens/uni.svg';
-import AAVEImg from '@/assets/tokens/aave.svg';
-import RENDERImg from '@/assets/tokens/render.svg';
-import GTImg from '@/assets/tokens/gt.svg';
 import TRUMPImg from '@/assets/tokens/trump.svg';
 import PUMPImg from '@/assets/tokens/pump.svg';
 import JUPImg from '@/assets/tokens/jup.svg';
+import BONKImg from '@/assets/tokens/bonk.svg';
+import PENGUImg from '@/assets/tokens/pengu.svg';
+import PRIMEImg from '@/assets/tokens/prime.svg';
+import Z2Img from '@/assets/tokens/2Z.svg';
+import ZBCNImg from '@/assets/tokens/zbcn.svg';
 
 import DefinityDevImg from '@/assets/home/DFINITYDev.jpg';
 import EasyaAppImg from '@/assets/home/easya_app.jpg';
 import ICPImg from '@/assets/home/ICP.svg';
 import EasyAImg from '@/assets/home/EasyA.png';
-import { Card } from '@/components/ui/card';
+import { useQueries } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AnimatedBackground } from '@/components/ui/animated-background';
+import { CartesianGrid, XAxis, YAxis, LineChart, Line } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import type { ChartConfig } from '@/components/ui/chart';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { AlertCircleIcon, ClockIcon, DollarSignIcon, RefreshCwIcon, MinusIcon, ShieldIcon, ZapIcon, CheckIcon, XIcon, EyeIcon, ArrowRightIcon, WalletIcon, ArrowDownUpIcon, PieChartIcon } from 'lucide-react';
+import { AlertCircleIcon, ClockIcon, DollarSignIcon, RefreshCwIcon, MinusIcon, ShieldIcon, CheckIcon, XIcon, EyeIcon, ArrowRightIcon, WalletIcon, ArrowDownUpIcon, PieChartIcon } from 'lucide-react';
 
 const containerVariants = {
     visible: {
@@ -61,6 +70,21 @@ const imageVariants = {
             ease: 'easeOut',
         },
     },
+};
+
+const initialInvestment = ['$100', '$1,000', '$10,000'] as const;
+
+const timeframe = ['1Y', '3Y', '5Y'] as const;
+
+type BIT10Entry = {
+    date: string;
+    bit10Top: string,
+    bit10Sol: string,
+    btc: string;
+    eth: string;
+    sol: string;
+    sp500: string;
+    gold: string;
 };
 
 type FeatureStatus = 'yes' | 'no' | 'partial';
@@ -167,7 +191,7 @@ const features = [
     {
         icon: ShieldIcon,
         title: 'Native Assets Only',
-        description: 'No wrapped tokens. You own the actual SOL, LINK, UNI - not IOUs.',
+        description: 'No wrapped tokens. You own the actual SOL, JUP, PUMP - not IOUs.',
     },
     {
         icon: EyeIcon,
@@ -236,7 +260,161 @@ const parterners = [
     }
 ]
 
+const fetchBIT105YPerformance = async (): Promise<{ bit10: BIT10Entry[] } | null> => {
+    try {
+        const response = await fetch('bit10-comparison-data-5');
+        if (!response.ok) throw new Error('Network error');
+
+        const data = (await response.json()) as { bit10?: BIT10Entry[] };
+        return { bit10: (data.bit10 ?? []).reverse() };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+        toast.error('Error fetching BIT10 performance. Please try again!');
+        return null;
+    }
+};
+
 export default function Page() {
+    const [activeTab, setActiveTab] = useState('5Y');
+    const [activeInitialInvestmentTab, setActiveInitialInvestmentTab] = useState('$100');
+
+    const { data: queryData, isLoading } = useQueries({
+        queries: [
+            {
+                queryKey: ['bit10SolTokenPreformance5Y'],
+                queryFn: () => fetchBIT105YPerformance(),
+                staleTime: 900000, // 15 minutes
+            },
+        ],
+        combine: (results) => ({
+            data: results.map((r) => r.data),
+            isLoading: results.some((r) => r.isLoading),
+        }),
+    });
+
+    const bit10SOLData = useMemo(() => {
+        const performanceData = queryData?.[0];
+        if (performanceData && typeof performanceData === 'object' && 'bit10' in performanceData) {
+            return (performanceData as { bit10: BIT10Entry[] }).bit10 ?? [];
+        }
+        return [];
+    }, [queryData]);
+
+    const dateFormatter = useMemo(
+        () =>
+            new Intl.DateTimeFormat('en-US', {
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+            }),
+        []
+    );
+
+    const getPerformanceRange = useCallback(
+        (data: BIT10Entry[], rangeYears: number) => {
+            if (!data.length) return [];
+            const lastEntry = data[data.length - 1];
+            if (!lastEntry) return [];
+            const now = new Date(lastEntry.date);
+            const start = new Date(now);
+            start.setFullYear(start.getFullYear() - rangeYears);
+            return data.filter((entry) => new Date(entry.date) >= start);
+        },
+        []
+    );
+
+    const performance1Y = useMemo(() => getPerformanceRange(bit10SOLData, 1), [bit10SOLData, getPerformanceRange]);
+    const performance3Y = useMemo(() => getPerformanceRange(bit10SOLData, 3), [bit10SOLData, getPerformanceRange]);
+    const performance5Y = useMemo(() => getPerformanceRange(bit10SOLData, 5), [bit10SOLData, getPerformanceRange]);
+
+    const tickFormatter = useCallback((value: string) => {
+        const match = /\d{4}/.exec(value);
+        return match ? match[0] : value;
+    }, []);
+
+    const initialInvestmentValue = useMemo(() => {
+        return Number(activeInitialInvestmentTab.replace(/[$,]/g, ''));
+    }, [activeInitialInvestmentTab]);
+
+    const formatChartData = useCallback(
+        (rawData: BIT10Entry[]) => {
+            if (!rawData.length) return [];
+
+            const first = rawData[0];
+            if (!first) return [];
+
+            const initialBIT10SOL = parseFloat(first.bit10Sol) || 1;
+            const initialBTC = parseFloat(first.btc) || 1;
+            const initialSOL = parseFloat(first.sol) || 1;
+
+            return rawData.map((entry) => ({
+                day: dateFormatter.format(new Date(entry.date)),
+                bit10SolValue: (parseFloat(entry.bit10Sol) / initialBIT10SOL) * initialInvestmentValue,
+                btcValue: (parseFloat(entry.btc) / initialBTC) * initialInvestmentValue,
+                solValue: (parseFloat(entry.sol) / initialSOL) * initialInvestmentValue
+            }));
+        },
+        [dateFormatter, initialInvestmentValue]
+    );
+
+    const chartData1Y = useMemo(() => formatChartData(performance1Y), [formatChartData, performance1Y]);
+    const chartData3Y = useMemo(() => formatChartData(performance3Y), [formatChartData, performance3Y]);
+    const chartData5Y = useMemo(() => formatChartData(performance5Y), [formatChartData, performance5Y]);
+
+    const activeChartData = useMemo(() => {
+        switch (activeTab) {
+            case '1Y':
+                return chartData1Y;
+            case '3Y':
+                return chartData3Y;
+            case '5Y':
+                return chartData5Y;
+            default:
+                return chartData5Y;
+        }
+    }, [activeTab, chartData1Y, chartData3Y, chartData5Y]);
+
+    const bit10FinalValue = useMemo(
+        () => activeChartData[activeChartData.length - 1]?.bit10SolValue ?? initialInvestmentValue,
+        [activeChartData, initialInvestmentValue]
+    );
+
+    const bit10FinalAmount = useMemo(() => {
+        if (!activeChartData.length) return initialInvestmentValue;
+        return bit10FinalValue;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [bit10FinalValue, initialInvestmentValue]);
+
+    const bit10ReturnPercent = useMemo(() => {
+        if (initialInvestmentValue === 0) return 0;
+        return ((bit10FinalAmount - initialInvestmentValue) / initialInvestmentValue) * 100;
+    }, [initialInvestmentValue, bit10FinalAmount]);
+
+    const handleTabChange = useCallback((label: string | null) => {
+        if (label && (timeframe as readonly string[]).includes(label)) {
+            setActiveTab(label as '5Y' | '3Y' | '1Y');
+        }
+    }, []);
+
+    const handleInitialInvestmentTabChange = useCallback((label: string | null) => {
+        if (label && (initialInvestment as readonly string[]).includes(label)) {
+            setActiveInitialInvestmentTab(label);
+        }
+    }, []);
+
+    const investmentChartConfig = {
+        bit10SolValue: {
+            label: 'BIT10.SOL'
+        },
+        btcValue: {
+            label: 'Bitcoin'
+        },
+        solValue: {
+            label: 'Solana'
+        }
+    } satisfies ChartConfig;
+
     return (
         <div className='flex flex-col space-y-4'>
             <div className='relative flex flex-col space-y-2 md:space-y-8 items-center max-w-7xl mx-auto z-10 w-full pt-8 md:py-18'>
@@ -329,6 +507,7 @@ export default function Page() {
                         className='text-6xl md:-mt-3'>
                         =
                     </motion.div>
+
                     <div className='flex flex-col space-y-2 items-start justify-center'>
                         <motion.div
                             variants={containerVariants}
@@ -336,7 +515,7 @@ export default function Page() {
                             whileInView='visible'
                             viewport={{ once: true }}
                             className='flex flex-row items-center justify-center -space-x-3 w-full'>
-                            {[SOLImg, LINKImg, WLFIImg, UNIImg, AAVEImg, RENDERImg, GTImg, TRUMPImg, PUMPImg, JUPImg].map((imgSrc, index) => (
+                            {[SOLImg, WLFIImg, TRUMPImg, PUMPImg, JUPImg, BONKImg, PENGUImg, PRIMEImg, Z2Img, ZBCNImg].map((imgSrc, index) => (
                                 <motion.div key={index} variants={imageVariants}>
                                     <Image src={imgSrc as StaticImageData} alt='logo' width={85} height={85} className='border-2 rounded-full w-9 md:w-16 lg:w-20 h-full object-cover bg-gray-200' />
                                 </motion.div>
@@ -383,7 +562,7 @@ export default function Page() {
                 </motion.div>
             </div>
 
-            <MaxWidthWrapper className='flex flex-col space-y-4 md:space-y-16 lg:space-y-20 py-8 lg:px-36'>
+            <MaxWidthWrapper className='flex flex-col w-full items-center space-y-4 md:space-y-16 lg:space-y-20 py-8 lg:px-36'>
                 <div className='container relative z-10 px-4'>
                     <div className='mx-auto text-center mb-16'>
                         <motion.span
@@ -557,7 +736,7 @@ export default function Page() {
                             whileInView='visible'
                             viewport={{ once: true }}
                             variants={containerVariants}
-                            className='grid grid-cols-3 gap-4 md:gap-8 mb-8'>
+                            className='grid md:grid-cols-3 gap-4 md:gap-8 mb-8'>
                             {stats.map((stat) => (
                                 <motion.div
                                     key={stat.label}
@@ -609,6 +788,125 @@ export default function Page() {
                             </Button>
                         </motion.div>
                     </div>
+                </div>
+
+                <div className='flex flex-col space-y-4 items-center justify-center w-full'>
+                    <div className='max-w-4xl mx-auto text-center mb-12'>
+                        <motion.span
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2, duration: 0.8 }}
+                            className='inline-block px-4 py-1.5 mb-6 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20'>
+                            Investment Calculator
+                        </motion.span>
+                        <motion.h2
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2, duration: 0.8 }}
+                            className='text-3xl md:text-5xl font-bold mb-6'>
+                            See your potential{' '}
+                            <span className='text-primary'>growth</span>
+                        </motion.h2>
+                        <motion.p
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2, duration: 0.8 }}
+                            className='text-lg text-muted-foreground'>
+                            Compare BIT10&apos;s projected performance against Bitcoin and traditional markets.
+                        </motion.p>
+                    </div>
+
+                    <Card className='animate-fade-right-slow h-full w-full lg:w-3/4 bg-background'>
+                        <CardHeader className='flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-3 w-full'>
+                            <div className='flex flex-col lg:flex-row items-center md:space-x-1.5'>
+                                <div>Initial Investment:</div>
+                                <div className='relative flex flex-row space-x-2 bg-muted border rounded-full px-2 py-1.5 self-center'>
+                                    <AnimatedBackground defaultValue={activeInitialInvestmentTab} className='rounded-full bg-primary' transition={{ ease: 'easeInOut', duration: 0.2 }} onValueChange={handleInitialInvestmentTabChange}>
+                                        {initialInvestment.map((label) => (
+                                            <button key={label} data-id={label} type='button' className={`inline-flex cursor-pointer px-2 text-sm items-center transition-transform active:scale-95 ${activeTab === label ? 'text-white' : 'text-foreground'}`}>
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </AnimatedBackground>
+                                </div>
+                            </div>
+                            <div className='flex flex-col lg:flex-row items-center md:space-x-1.5'>
+                                <div>Timeframe:</div>
+                                <div className='relative flex flex-row space-x-2 bg-muted border rounded-full px-2 py-1.5 self-center'>
+                                    <AnimatedBackground defaultValue={activeTab} className='rounded-full bg-primary' transition={{ ease: 'easeInOut', duration: 0.2 }} onValueChange={handleTabChange}>
+                                        {timeframe.map((label) => (
+                                            <button key={label} data-id={label} type='button' className={`inline-flex cursor-pointer px-2 text-sm items-center transition-transform active:scale-95 ${activeTab === label ? 'text-white' : 'text-foreground'}`}>
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </AnimatedBackground>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? (
+                                <Skeleton className='h-75 lg:h-120 w-full' />
+                            ) : (
+                                <div className='select-none -ml-4'>
+                                    <ChartContainer config={investmentChartConfig} className='h-75 lg:h-95 w-full'>
+                                        <LineChart accessibilityLayer data={activeChartData}>
+                                            <CartesianGrid vertical={false} />
+                                            <XAxis dataKey='day' tickLine axisLine={true} tickMargin={8} tickFormatter={tickFormatter} stroke='#ffffff' interval='preserveStartEnd' />
+                                            <YAxis tickLine axisLine={true} tickMargin={8} tickCount={6} stroke='#ffffff' tickFormatter={(value) => `$${(value as number).toLocaleString()}`}
+                                                domain={[
+                                                    (dataMin: number) => {
+                                                        const padding = dataMin * 0.05;
+                                                        const range = dataMin - padding;
+                                                        const magnitude = Math.pow(10, Math.floor(Math.log10(Math.abs(range) || 1)));
+                                                        return Math.floor(range / magnitude) * magnitude;
+                                                    },
+                                                    (dataMax: number) => {
+                                                        const padding = dataMax * 0.05;
+                                                        const range = dataMax + padding;
+                                                        const magnitude = Math.pow(10, Math.floor(Math.log10(Math.abs(range) || 1)));
+                                                        return Math.ceil(range / magnitude) * magnitude;
+                                                    },
+                                                ]}
+                                            />
+                                            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                                            <Line dataKey='bit10SolValue' type='monotone' stroke='green' strokeWidth={2} dot={false} name='BIT10.SOL' />
+                                            <Line dataKey='btcValue' type='monotone' stroke='orange' strokeWidth={2} dot={false} name='Bitcoin' />
+                                            <Line dataKey='solValue' type='monotone' stroke='blue' strokeWidth={2} dot={false} name='Solana' />
+                                        </LineChart>
+                                    </ChartContainer>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {activeChartData.length > 0 && (
+                        <Card className='flex flex-col gap-2 md:gap-4 w-full lg:w-3/4 bg-primary/10 border-primary/20 p-4 md:px-8'>
+                            <div className='flex flex-col md:flex-row items-center justify-between gap-4'>
+                                <div>
+                                    <div className='text-sm text-muted-foreground mb-1'>
+                                        {activeInitialInvestmentTab} invested in BIT10 over {activeTab}
+                                    </div>
+                                    <div className='text-3xl font-bold text-primary'>
+                                        ${bit10FinalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                    </div>
+                                </div>
+                                <div className='text-right'>
+                                    <div className='text-sm text-muted-foreground mb-1'>Projected return</div>
+                                    <div className={cn(
+                                        'text-2xl font-bold',
+                                        bit10ReturnPercent > 0 ? 'text-green-600' : 'text-red-600'
+                                    )}>
+                                        {bit10ReturnPercent > 0 ? '+' : ''}
+                                        {bit10ReturnPercent.toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='text-sm text-muted-foreground'>* Based on historical crypto market data. Past performance does not guarantee future results. Investment in crypto assets involves risk.</div>
+                        </Card>
+                    )}
                 </div>
 
                 <div className='relative' id='how-it-works'>
@@ -687,7 +985,7 @@ export default function Page() {
                     </div>
                 </div>
 
-                <div className='flex flex-col space-y-4 items-center overflow-hidden'>
+                <div className='flex flex-col space-y-4 w-full items-center overflow-hidden'>
                     <motion.div
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}

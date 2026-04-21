@@ -31,6 +31,14 @@ const config = {
             }
         ]
     },
+    async rewrites() {
+        return [
+            {
+                source: '/bit10-comparison-data-:time',
+                destination: '/api/bit10-comparison-data/:time*',
+            }
+        ]
+    },
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production'
     }

@@ -1,8 +1,8 @@
-import '@/styles/globals.css'
-import { cn, constructMetadata } from '@/lib/utils'
-import Providers from '@/app/_provider/Providers'
-import ScrollToTopBtn from '@/components/ScrollToTopBtn'
-import { Toaster } from '@/components/ui/sonner'
+import '@/styles/globals.css';
+import { cn, constructMetadata } from '@/lib/utils';
+import Providers from '@/app/_provider/Providers';
+import ScrollToTopBtn from '@/components/ScrollToTopBtn';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata = constructMetadata();
 
