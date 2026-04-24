@@ -32,3 +32,18 @@ export function constructMetadata({
     ...(noIndex && { robots: { index: false, follow: false } }),
   };
 }
+
+export const formatPreciseDecimal = (value: number | string | null | undefined): string => {
+  let numValue: number;
+  if (typeof value === 'string') numValue = parseFloat(value);
+  else numValue = value!;
+  if (!numValue || isNaN(numValue)) return '0';
+  if (numValue === 0) return '0';
+
+  const strValue = numValue.toFixed(10).replace(/\.?0+$/, ''), [integerPart, decimalPart = ''] = strValue.split('.'), formattedInteger = Number(integerPart).toLocaleString();
+  if (!decimalPart) return formattedInteger || '0';
+  const firstNonZeroIndex = decimalPart.search(/[1-9]/);
+  if (firstNonZeroIndex === -1) return formattedInteger || '0';
+  const trimmedDecimal = decimalPart.slice(0, firstNonZeroIndex + 4);
+  return `${formattedInteger}.${trimmedDecimal}`;
+};

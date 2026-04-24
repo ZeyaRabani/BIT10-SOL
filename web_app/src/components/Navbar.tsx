@@ -17,7 +17,7 @@ interface NavLink {
 const links = {
     web: [
         { title: 'How It Works', link: '?id=how-it-works' },
-        // { title: 'Proof-of-Reserves', link: '?id=reserves' },
+        { title: 'Proof-of-Reserves', link: '?id=reserves' },
         { title: 'Investment Calculator', link: '/investment-calculator' },
         { title: 'GitBook', link: '/gitbook' }
     ] as NavLink[],

@@ -17,17 +17,15 @@ import DogeImg from '@/assets/tokens/doge.svg';
 import ADAImg from '@/assets/tokens/cardano.svg';
 import BCHImg from '@/assets/tokens/bch.svg';
 import AVAXImg from '@/assets/tokens/avax.svg';
-
 import WLFIImg from '@/assets/tokens/wlfi.svg';
-import TRUMPImg from '@/assets/tokens/trump.svg';
 import PUMPImg from '@/assets/tokens/pump.svg';
+import TRUMPImg from '@/assets/tokens/trump.svg';
 import JUPImg from '@/assets/tokens/jup.svg';
 import BONKImg from '@/assets/tokens/bonk.svg';
 import PENGUImg from '@/assets/tokens/pengu.svg';
 import PRIMEImg from '@/assets/tokens/prime.svg';
-import Z2Img from '@/assets/tokens/2Z.svg';
 import ZBCNImg from '@/assets/tokens/zbcn.svg';
-
+import Z2Img from '@/assets/tokens/2Z.svg';
 import DefinityDevImg from '@/assets/home/DFINITYDev.jpg';
 import EasyaAppImg from '@/assets/home/easya_app.jpg';
 import ICPImg from '@/assets/home/ICP.svg';
@@ -42,7 +40,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import type { ChartConfig } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { AlertCircleIcon, ClockIcon, DollarSignIcon, RefreshCwIcon, MinusIcon, ShieldIcon, CheckIcon, XIcon, EyeIcon, ArrowRightIcon, WalletIcon, ArrowDownUpIcon, PieChartIcon } from 'lucide-react';
+import { TrendingUpIcon, TrendingDownIcon, AlertCircleIcon, ClockIcon, DollarSignIcon, RefreshCwIcon, MinusIcon, ShieldIcon, CheckIcon, XIcon, EyeIcon, ArrowRightIcon, WalletIcon, ArrowDownUpIcon, PieChartIcon } from 'lucide-react';
+import { formatPreciseDecimal } from '@/lib/utils';
 
 const containerVariants = {
     visible: {
@@ -85,6 +84,19 @@ type BIT10Entry = {
     sol: string;
     sp500: string;
     gold: string;
+};
+
+type TokenPriceData = {
+    timestmpz: string;
+    tokenPrice: number;
+    data: {
+        id: string;
+        symbol: string;
+        name: string;
+        image: string;
+        price: number;
+        marketCap: number;
+    }[];
 };
 
 type FeatureStatus = 'yes' | 'no' | 'partial';
@@ -260,6 +272,20 @@ const parterners = [
     }
 ]
 
+const fetchBIT10Tokens = async (tokenPriceAPI: string) => {
+    try {
+        const response = await fetch(tokenPriceAPI);
+        if (!response.ok) throw new Error('Failed to fetch tokens');
+
+        const data = (await response.json()) as { data?: unknown };
+        return data;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+        toast.error('Error fetching BIT10 price. Please try again!');
+        return [];
+    }
+};
+
 const fetchBIT105YPerformance = async (): Promise<{ bit10: BIT10Entry[] } | null> => {
     try {
         const response = await fetch('bit10-comparison-data-5');
@@ -281,6 +307,11 @@ export default function Page() {
     const { data: queryData, isLoading } = useQueries({
         queries: [
             {
+                queryKey: ['bit10SOLTokenList'],
+                queryFn: () => fetchBIT10Tokens('bit10-latest-price-sol'),
+                staleTime: 300000, // 5 minutes
+            },
+            {
                 queryKey: ['bit10SolTokenPreformance5Y'],
                 queryFn: () => fetchBIT105YPerformance(),
                 staleTime: 900000, // 15 minutes
@@ -292,13 +323,69 @@ export default function Page() {
         }),
     });
 
+    const bit10SOLCurrentPrice = useMemo(() => {
+        const tokenPrice = queryData?.[0] as TokenPriceData | undefined;
+        return tokenPrice?.tokenPrice?.toFixed(2) ?? '0.00';
+    }, [queryData]);
+
     const bit10SOLData = useMemo(() => {
-        const performanceData = queryData?.[0];
+        const performanceData = queryData?.[1];
         if (performanceData && typeof performanceData === 'object' && 'bit10' in performanceData) {
             return (performanceData as { bit10: BIT10Entry[] }).bit10 ?? [];
         }
         return [];
     }, [queryData]);
+
+    const bit10SOLAllocations = useMemo(() => {
+        const tokenPrice = queryData?.[0] as TokenPriceData | undefined;
+        return tokenPrice?.data ?? [];
+    }, [queryData]);
+
+    const bit10WithPercentages = useMemo(() => {
+        if (!bit10SOLAllocations?.length) return [];
+
+        const totalMarketCap = bit10SOLAllocations.reduce(
+            (sum, token) => sum + (token.marketCap ?? 0),
+            0
+        );
+
+        return bit10SOLAllocations.map((token) => ({
+            ...token,
+            percentage: Number(
+                (totalMarketCap > 0 ? (((token.marketCap ?? 0) / totalMarketCap) * 100) : 0).toFixed(2)
+            ),
+        }));
+    }, [bit10SOLAllocations]);
+
+    const bit10PreviousDayPrice = useMemo(() => {
+        if (!bit10SOLData.length) return null;
+
+        const last = bit10SOLData[bit10SOLData.length - 1];
+        const prev = bit10SOLData[bit10SOLData.length - 2];
+
+        if (!last || !prev) return null;
+
+        return {
+            last: parseFloat(last.bit10Sol),
+            prev: parseFloat(prev.bit10Sol),
+        };
+    }, [bit10SOLData]);
+
+    const bit10DailyChange = useMemo(() => {
+        if (!bit10PreviousDayPrice) return null;
+
+        const { last, prev } = bit10PreviousDayPrice;
+        if (!prev || prev === 0) return null;
+
+        const diff = last - prev;
+        const percent = (diff / prev) * 100;
+
+        return {
+            diff,
+            percent,
+            isUp: diff > 0,
+        };
+    }, [bit10PreviousDayPrice]);
 
     const dateFormatter = useMemo(
         () =>
@@ -422,6 +509,36 @@ export default function Page() {
                 <div className='hidden md:block absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl z-[-1]' />
 
                 <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2, duration: 0.8 }}
+                    className='inline-flex items-center gap-3 px-4 py-2 mb-8 rounded-full border'>
+                    {isLoading && bit10SOLCurrentPrice && bit10DailyChange ?
+                        <Skeleton className='h-5 md:h-10 w-20 md:w-56 rounded-full' /> :
+                        <>
+                            <span className='animate-pulse size-2 rounded-full bg-primary' />
+                            <span className='text-sm text-muted-foreground'>BIT10.SOL</span>
+                            <span className='text-lg font-semibold text-foreground'>${bit10SOLCurrentPrice}</span>
+                            <span
+                                className={cn(
+                                    'flex items-center gap-1 text-sm font-medium',
+                                    (bit10DailyChange?.isUp ?? false) ? 'text-green-600' : 'text-red-600'
+                                )}
+                            >
+                                {(bit10DailyChange?.isUp ?? false) ? (
+                                    <TrendingUpIcon className='w-4 h-4' />
+                                ) : (
+                                    <TrendingDownIcon className='w-4 h-4' />
+                                )}
+                                {(bit10DailyChange?.percent ?? 0) > 0 ? '+' : ''}
+                                {(bit10DailyChange?.percent ?? 0).toFixed(2)}%
+                            </span>
+                        </>
+                    }
+                </motion.div>
+
+                <motion.div
                     initial={{ opacity: 0.0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -515,7 +632,7 @@ export default function Page() {
                             whileInView='visible'
                             viewport={{ once: true }}
                             className='flex flex-row items-center justify-center -space-x-3 w-full'>
-                            {[SOLImg, WLFIImg, TRUMPImg, PUMPImg, JUPImg, BONKImg, PENGUImg, PRIMEImg, Z2Img, ZBCNImg].map((imgSrc, index) => (
+                            {[SOLImg, WLFIImg, PUMPImg, TRUMPImg, JUPImg, BONKImg, PENGUImg, PRIMEImg, ZBCNImg, Z2Img].map((imgSrc, index) => (
                                 <motion.div key={index} variants={imageVariants}>
                                     <Image src={imgSrc as StaticImageData} alt='logo' width={85} height={85} className='border-2 rounded-full w-9 md:w-16 lg:w-20 h-full object-cover bg-gray-200' />
                                 </motion.div>
@@ -889,7 +1006,7 @@ export default function Page() {
                                     <div className='text-sm text-muted-foreground mb-1'>
                                         {activeInitialInvestmentTab} invested in BIT10 over {activeTab}
                                     </div>
-                                    <div className='text-3xl font-bold text-primary'>
+                                    <div className='text-3xl font-bold text-primary text-center md:text-left'>
                                         ${bit10FinalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                                     </div>
                                 </div>
@@ -908,6 +1025,154 @@ export default function Page() {
                         </Card>
                     )}
                 </div>
+
+                <div className='relative flex overflow-hidden w-full items-center justify-center' id='reserves'>
+                    <div className='container px-4'>
+                        <div className='max-w-4xl mx-auto text-center mb-12'>
+                            <motion.span
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2, duration: 0.8 }}
+                                className='inline-block px-4 py-1.5 mb-6 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20'>
+                                Transparency
+                            </motion.span>
+                            <motion.h2
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2, duration: 0.8 }}
+                                className='text-3xl md:text-5xl font-bold mb-6'>
+                                If it exists,{' '}
+                                <span className='text-primary'>you can see it</span>
+                            </motion.h2>
+                            <motion.p
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2, duration: 0.8 }}
+                                className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+                                Every asset backing your BIT10 tokens is verifiable on-chain. <br />
+                                No trust required - just verify.
+                            </motion.p>
+                        </div>
+
+                        {/* <div className='max-w-5xl mx-auto'>
+                            <motion.div
+                                initial='hidden'
+                                whileInView='visible'
+                                viewport={{ once: true }}
+                                variants={containerVariants}
+                                className='grid md:grid-cols-3 gap-4 mb-8'>
+                                <motion.div variants={cardVariants} className='p-6 rounded-2xl border text-center'>
+                                    <ShieldIcon className='w-8 h-8 text-primary mx-auto mb-3' />
+                                    <div className='text-sm text-muted-foreground mb-1'>Total Reserves</div>
+                                    <div className='text-2xl font-bold'>${bit10SOLTotalCollateral.toFixed(2)}</div>
+                                </motion.div>
+                                <motion.div variants={cardVariants} className='p-6 rounded-2xl border text-center border-primary/30'>
+                                    <div className='w-8 h-8 mx-auto mb-3 rounded-full bg-primary/20 flex items-center justify-center'>
+                                        <CheckIcon className='w-5 h-5 text-primary' />
+                                    </div>
+                                    <div className='text-sm text-muted-foreground mb-1'>Collateralization</div>
+                                    <div className='text-2xl font-bold text-primary'>110%</div>
+                                </motion.div>
+                                <motion.div variants={cardVariants} className='p-6 rounded-2xl border text-center'>
+                                    <TrendingUpIcon className='w-8 h-8 text-primary mx-auto mb-3' />
+                                    <div className='text-sm text-muted-foreground mb-1'>Total Supply</div>
+                                    <div className='text-2xl font-bold'>{bit10SOLSupply.toFixed(2)}</div>
+                                </motion.div>
+                            </motion.div> */}
+
+                        <div className='rounded-3xl border overflow-hidden'>
+                            <div className='p-6 border-b border-border'>
+                                <motion.h3
+                                    initial={{ opacity: 0, y: 40 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.2, duration: 0.8 }}
+                                    className='text-lg font-semibold'>
+                                    {/* BIT10.SOL Reserve Holdings */}
+                                    BIT10.SOL Current Weights
+                                </motion.h3>
+                                <motion.p
+                                    initial={{ opacity: 0, y: 40 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.2, duration: 0.8 }}
+                                    className='text-sm text-muted-foreground'>
+                                    Native assets held across all supported chains
+                                </motion.p>
+                            </div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2, duration: 0.8 }}
+                                className='overflow-x-auto'>
+                                <table className='w-full'>
+                                    <thead>
+                                        <tr className='border-b border-border/50 text-sm text-muted-foreground'>
+                                            <th className='text-left py-2 px-6 font-medium'>Asset</th>
+                                            <th className='text-right py-2 px-6 font-medium'>Token Price</th>
+                                            <th className='text-right py-2 px-6 font-medium'>Weight</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {bit10WithPercentages.map((reserve, index) => (
+                                            <tr
+                                                key={index}
+                                                className='border-b border-border/30 hover:bg-muted/30 transition-colors'
+                                            >
+                                                <td className='py-2 px-6'>
+                                                    <div className='flex items-center gap-3'>
+                                                        <div className='w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center'>
+                                                            <Image src={reserve.image} alt={reserve.name} width={40} height={40} className='object-contain' />
+                                                        </div>
+                                                        <div>
+                                                            <div className='font-medium uppercase'>{reserve.symbol}</div>
+                                                            <div className='text-sm text-muted-foreground'>{reserve.name}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className='py-2 px-6 text-right font-medium'>${formatPreciseDecimal(reserve.price)}</td>
+                                                <td className='py-2 px-6 text-right'>
+                                                    <div className='flex items-center justify-end gap-3'>
+                                                        <div className='w-24 h-2 rounded-full bg-muted overflow-hidden'>
+                                                            <div
+                                                                className='h-full rounded-full bg-linear-to-r from-primary to-primary/60'
+                                                                style={{ width: `${reserve.percentage * 3}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className='text-sm text-muted-foreground w-12 text-right'>
+                                                            {reserve.percentage}%
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </motion.div>
+
+                            {/* <motion.div
+                                initial={{ opacity: 0, y: 40 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2, duration: 0.8 }}
+                                className='p-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4'>
+                                <p className='text-sm text-muted-foreground'>
+                                    All holdings verified via on-chain proof. Click to verify on-chain.
+                                </p>
+                                <Button variant='outline' size='sm' onClick={() => window.open('/collateral', '_blank')}>
+                                    Verify On-Chain
+                                    <ExternalLinkIcon className='ml-2 w-4 h-4' />
+                                </Button>
+                            </motion.div> */}
+                        </div>
+
+                    </div>
+                </div >
 
                 <div className='relative' id='how-it-works'>
                     <div className='container px-4'>
@@ -1014,7 +1279,7 @@ export default function Page() {
                         ))}
                     </motion.div>
                 </div>
-            </MaxWidthWrapper>
+            </MaxWidthWrapper >
         </div >
     )
 }

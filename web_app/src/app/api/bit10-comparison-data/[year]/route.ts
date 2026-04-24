@@ -39,13 +39,10 @@ export async function GET(request: NextRequest, context: { params: Promise<{ yea
 
         const data = (await res.json()) as Bit10ComparisonResponse;
 
-        // ToDo: Remove this when not required: The Fixed date and the removal of last two days
-        let bit10 = data.bit10.slice(2);
+        let bit10 = data.bit10;
 
         if (Number(year) > 4) {
-            bit10 = bit10.filter(
-                (entry) => entry.date >= FIXED_START_DATE
-            );
+            bit10 = bit10.filter((entry) => entry.date >= FIXED_START_DATE);
         }
 
         const trimmedData: Bit10ComparisonResponse = { ...data, bit10 };

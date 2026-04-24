@@ -36,7 +36,15 @@ const config = {
             {
                 source: '/bit10-comparison-data-:time',
                 destination: '/api/bit10-comparison-data/:time*',
-            }
+            },
+            {
+                source: '/bit10-latest-price-:index_fund',
+                destination: '/api/bit10-latest-price/:index_fund',
+            },
+            {
+                source: '/bit10-historical-data-:index_fund-:time',
+                destination: '/api/bit10-historical-data/:index_fund/:time',
+            },
         ]
     },
     compiler: {
