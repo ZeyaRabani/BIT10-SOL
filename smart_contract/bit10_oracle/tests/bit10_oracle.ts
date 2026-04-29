@@ -1,12 +1,12 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { SmartContract } from "../target/types/smart_contract";
+import { Bit10Oracle } from "../target/types/bit10_oracle";
 
-describe("smart_contract", () => {
+describe("bit10_oracle", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.SmartContract as Program<SmartContract>;
+  const program = anchor.workspace.bit10Oracle as Program<Bit10Oracle>;
 
   it("Is initialized!", async () => {
     // Add your test here.

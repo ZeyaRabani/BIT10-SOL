@@ -1,17 +1,18 @@
 [toolchain]
+package_manager = "yarn"
 
 [features]
 resolution = true
 skip-lint = false
 
 [programs.localnet]
-smart_contract = "z6vynwMFikRzZGxyveT4twB95KPTjBr5WLr7tZLzNcZ"
+bit10_oracle = "9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

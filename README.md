@@ -19,6 +19,22 @@ BIT10 SOL is designed for:
 
 By combining the strengths of multiple top Solana projects into a single asset, BIT10 SOL aims to make ecosystem investing **simpler, smarter, and more scalable**.
 
+## 📂 Code Structure
+
+⚠️ Steps to run the Smart Contract and the related architecture diagrams are present in their respective folders.
+
+- **`smart_contracts/`**
+  - `bit10_oracle/` - Oracle smart contract for retrieving pricing and other data, such as rebalancing, for the BIT10 index fund.
+  - `bit10_exchange/` - Smart contract for minting and burning BIT10.
+  - `bit10_asset_storage/` - Smart contract for storing assets used as collateral.
+
+- **`web_app/`** - Contains frontend code for the BIT10 application.
+
+## 🔗 Important Links
+
+- BIT10 SOL web app: [https://bit10sol.vercel.app](https://bit10sol.vercel.app)
+- Devnet BIT10 Oracle Smart Contract: [9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT](https://solscan.io/account/9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT?cluster=devnet)
+
 ## 🏁 Getting Started
 
 To start using BIT10, follow these steps:
