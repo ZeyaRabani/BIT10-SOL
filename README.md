@@ -23,7 +23,7 @@ By combining the strengths of multiple top Solana projects into a single asset, 
 
 ⚠️ Steps to run the Smart Contract and the related architecture diagrams are present in their respective folders.
 
-- **`smart_contracts/`**
+- **`smart_contract/`**
   - `bit10_oracle/` - Oracle smart contract for retrieving pricing and other data, such as rebalancing, for the BIT10 index fund.
   - `bit10_exchange/` - Smart contract for minting and burning BIT10.
   - `bit10_asset_storage/` - Smart contract for storing assets used as collateral.
