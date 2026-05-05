@@ -5,18 +5,8 @@ import { motion } from 'framer-motion';
 import MaxWidthWrapper from '@/components/MaxWidthWrapper';
 import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
 import Image, { type StaticImageData } from 'next/image';
-import BIT10Img from '@/assets/tokens/bit10.svg';
 import BIT10SOLImg from '@/assets/tokens/bit10-sol-1.svg';
-import BTCImg from '@/assets/tokens/btc.svg';
-import ETHImg from '@/assets/tokens/eth.svg';
-import XRPImg from '@/assets/tokens/xrp.svg';
-import BNBImg from '@/assets/tokens/bnb.svg';
 import SOLImg from '@/assets/tokens/sol.svg';
-import TRXImg from '@/assets/tokens/trx.svg';
-import DogeImg from '@/assets/tokens/doge.svg';
-import ADAImg from '@/assets/tokens/cardano.svg';
-import BCHImg from '@/assets/tokens/bch.svg';
-import AVAXImg from '@/assets/tokens/avax.svg';
 import WLFIImg from '@/assets/tokens/wlfi.svg';
 import PUMPImg from '@/assets/tokens/pump.svg';
 import TRUMPImg from '@/assets/tokens/trump.svg';
@@ -547,56 +537,6 @@ export default function Page() {
                     className='text-4xl md:text-6xl lg:text-7xl font-bold text-center pb-2'>
                     <span className='text-primary'>Redefining</span> Crypto Index Funds
                 </motion.div>
-
-                <div className='flex flex-col md:flex-row md:space-x-4 items-center justify-center pt-6 px-4'>
-                    <div className='flex flex-col space-y-2 items-center'>
-                        <motion.div
-                            initial={{ opacity: 0.0, x: -40 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, ease: 'easeInOut' }}>
-                            <Image src={BIT10Img as StaticImageData} alt='logo' width={85} height={85} className='border-2 w-16 md:w-16 lg:w-20 rounded-full' />
-                        </motion.div>
-                        <motion.div
-                            initial={{ opacity: 0.0, y: 40 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, ease: 'easeInOut' }}
-                            className='text-xl font-semibold text-primary'>
-                            BIT10.TOP
-                        </motion.div>
-                    </div>
-                    <motion.div
-                        initial={{ opacity: 0, y: 40 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3, duration: 0.8, ease: 'easeInOut' }}
-                        className='text-6xl md:-mt-3'>
-                        =
-                    </motion.div>
-                    <div className='flex flex-col space-y-2 items-start justify-center'>
-                        <motion.div
-                            variants={containerVariants}
-                            initial='hidden'
-                            whileInView='visible'
-                            viewport={{ once: true }}
-                            className='flex flex-row items-center justify-center -space-x-3 w-full'>
-                            {[BTCImg, ETHImg, XRPImg, BNBImg, SOLImg, TRXImg, DogeImg, ADAImg, BCHImg, AVAXImg].map((imgSrc, index) => (
-                                <motion.div key={index} variants={imageVariants}>
-                                    <Image src={imgSrc as StaticImageData} alt='logo' width={85} height={85} className='border-2 rounded-full w-9 md:w-16 lg:w-20 h-full object-cover bg-gray-200' />
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                        {/* <motion.div
-                            initial={{ opacity: 0.0, y: 40 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, ease: 'easeInOut' }}
-                            className='text-xl font-semibold text-center'>
-                            Top 10 cryptocurrencies in a single, secure, over-collateralized token.
-                        </motion.div> */}
-                    </div>
-                </div>
 
                 <div className='flex flex-col md:flex-row md:space-x-4 items-center justify-center pt-6 px-4'>
                     <div className='flex flex-col space-y-2 items-center'>

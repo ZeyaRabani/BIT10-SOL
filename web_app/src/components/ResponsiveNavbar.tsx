@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, SettingsIcon, LandmarkIcon, Coins, BriefcaseBusiness, BookText, CalculatorIcon, Landmark, GiftIcon } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Button } from './ui/button';
 
 const links = {
     web: [
@@ -140,11 +141,11 @@ export default function ResponsiveNavbar() {
                                             </div>
                                         </Link>
                                     ))}
-                                    {/* <div className='border-b-2 pb-2 cursor-pointer w-full'>
+                                    <div className='border-b-2 pb-2 cursor-pointer w-full'>
                                         <Link href='/mint' passHref>
                                             <Button className='w-full'>Launch App</Button>
                                         </Link>
-                                    </div> */}
+                                    </div>
                                 </div>
                             </div>
                         </div>

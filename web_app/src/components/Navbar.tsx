@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AnimatedBackground } from '@/components/ui/animated-background';
 import ResponsiveNavbar from './ResponsiveNavbar';
 import Image from 'next/image';
+import { Button } from './ui/button';
 
 interface NavLink {
     title: string;
@@ -176,11 +177,11 @@ function NavbarContent() {
                         })}
                     </AnimatedBackground>
 
-                    {/* <div>
+                    <div>
                         <Link href='/mint' passHref>
                             <Button className='font-semibold'>Launch App</Button>
                         </Link>
-                    </div> */}
+                    </div>
                 </div>
 
                 <div className='flex space-x-2 justify-between items-center ml-2'>
