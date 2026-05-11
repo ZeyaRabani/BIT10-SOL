@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-bit10_exchange = "3M2PP2Ex85JoQEdQHjEBDCJ4YVR3RLXSkVoB1kwHhF8Q"
+bit10_exchange = "7CQDVZbDr9DtmzjYUFK2SM1GEGGc4o2qeYoUBfFyYb9N"
 
 [registry]
 url = "https://api.apr.dev"

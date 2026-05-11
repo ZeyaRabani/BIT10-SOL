@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::clock::Clock;
+
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self as token_1, Token};
 use anchor_spl::token_2022 as token_2022;
@@ -11,13 +12,13 @@ const MINT_AUTH_SEED: &[u8] = b"bit10-mint-authority";
 const VAULT_SOL_SEED: &[u8] = b"bit10-sol-vault";
 const VAULT_AUTH_SEED: &[u8] = b"bit10-vault-authority";
 
-const SOL_MINT_STR: &str = "11111111111111111111111111111111";
-const USDC_MINT_STR: &str = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
-const BIT10_SOL_INDEX_MINT_STR: &str = "bitSKL95tWu1ZzXAaYLmWKWNe3mK21Ribm2p4qR5Ffm";
+const SOL_MINT_STR: &str = "So11111111111111111111111111111111111111112";
+const USDC_MINT_STR: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+const BIT10_SOL_INDEX_MINT_STR: &str = "bitQG7BVz72Gu5L99bYRrZxTmFj8NPaFpT2uPp47yew";
 
 const SOL_TOKEN_ADDRESS: &str = "So11111111111111111111111111111111111111112";
 
-declare_id!("3M2PP2Ex85JoQEdQHjEBDCJ4YVR3RLXSkVoB1kwHhF8Q");
+declare_id!("7CQDVZbDr9DtmzjYUFK2SM1GEGGc4o2qeYoUBfFyYb9N");
 
 pub const MAX_INDEX_TOKENS: usize = 10;
 pub const MAX_ID_LEN: usize = 32;

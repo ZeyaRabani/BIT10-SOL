@@ -52,6 +52,7 @@ flowchart TD
 ## 🔗 Solana Smart Contract
 
 - Devnet BIT10 Oracle Smart Contract: [9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT](https://solscan.io/account/9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT?cluster=devnet)
+- Mainnet BIT10 Oracle Smart Contract: [AFAEYYsCPmwLsd97XWVJxbWnB7tHFqQ41hUZGK2fKWZX](https://solscan.io/account/AFAEYYsCPmwLsd97XWVJxbWnB7tHFqQ41hUZGK2fKWZX)
 
 ## 🏁 Getting Started
 

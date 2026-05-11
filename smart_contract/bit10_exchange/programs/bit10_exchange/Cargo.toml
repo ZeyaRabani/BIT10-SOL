@@ -18,7 +18,8 @@ cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
-idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]  # ← add anchor-spl here
 
 [patch.crates-io]
+# Force the entire tree to use one consistent spl-token-2022 version
 spl-token-2022 = { version = "6.0.0" }

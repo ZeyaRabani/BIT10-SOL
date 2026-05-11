@@ -32,8 +32,9 @@ By combining the strengths of multiple top Solana projects into a single asset, 
 
 ## 🔗 Important Links
 
-- BIT10 SOL web app: [https://bit10sol.vercel.app](https://bit10sol.vercel.app)
-- Devnet BIT10 Oracle Smart Contract: [9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT](https://solscan.io/account/9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT?cluster=devnet)
+- BIT10 SOL web app: [bit10sol.vercel.app](https://bit10sol.vercel.app)
+- Mainnet BIT10 Oracle Smart Contract: [AFAEYYsCPmwLsd97XWVJxbWnB7tHFqQ41hUZGK2fKWZX](https://solscan.io/account/AFAEYYsCPmwLsd97XWVJxbWnB7tHFqQ41hUZGK2fKWZX)
+- Mainnet BIT10 Exchange Smart Contract: [7CQDVZbDr9DtmzjYUFK2SM1GEGGc4o2qeYoUBfFyYb9N](https://solscan.io/account/7CQDVZbDr9DtmzjYUFK2SM1GEGGc4o2qeYoUBfFyYb9N)
 
 ## 🏁 Getting Started
 
