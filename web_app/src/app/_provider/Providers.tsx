@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ChainProvider } from '@/context/ChainContext';
 import { SolanaWalletProvider } from '@/context/SolanaWalletContext';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -9,9 +10,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <SolanaWalletProvider>
-                {children}
-            </SolanaWalletProvider>
+            <ChainProvider>
+                <SolanaWalletProvider>
+                    {children}
+                </SolanaWalletProvider>
+            </ChainProvider>
         </QueryClientProvider>
     );
 }

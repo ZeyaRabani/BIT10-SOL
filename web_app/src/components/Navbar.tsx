@@ -8,6 +8,7 @@ import { AnimatedBackground } from '@/components/ui/animated-background';
 import ResponsiveNavbar from './ResponsiveNavbar';
 import Image from 'next/image';
 import { Button } from './ui/button';
+import WalletBtn from './WalletBtn';
 
 interface NavLink {
     title: string;
@@ -26,8 +27,7 @@ const links = {
     app: [
         { title: 'Mint BIT10.SOL', link: '/mint' },
         { title: 'Portfolio', link: '/portfolio' },
-        { title: 'Collateral', link: '/collateral' },
-        { title: 'Rewards ✨', link: '/rewards', isRewards: true }
+        { title: 'Collateral', link: '/collateral' }
     ] as NavLink[],
 };
 
@@ -178,9 +178,13 @@ function NavbarContent() {
                     </AnimatedBackground>
 
                     <div>
-                        <Link href='/mint' passHref>
-                            <Button className='font-semibold'>Launch App</Button>
-                        </Link>
+                        {appMode ? (
+                            <WalletBtn />
+                        ) : (
+                            <Link href='/mint' passHref>
+                                <Button className='font-semibold'>Launch App</Button>
+                            </Link>
+                        )}
                     </div>
                 </div>
 

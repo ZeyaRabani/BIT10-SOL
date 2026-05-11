@@ -6,6 +6,7 @@ import { Menu, X, SettingsIcon, LandmarkIcon, Coins, BriefcaseBusiness, BookText
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './ui/button';
+import WalletBtn from './WalletBtn';
 
 const links = {
     web: [
@@ -17,8 +18,7 @@ const links = {
     app: [
         { title: 'Mint BIT10.SOL', link: '/mint', icon: Coins },
         { title: 'Portfolio', link: '/portfolio', icon: BriefcaseBusiness },
-        { title: 'Collateral', link: '/collateral', icon: Landmark },
-        { title: 'Rewards', link: '/rewards', icon: GiftIcon }
+        { title: 'Collateral', link: '/collateral', icon: Landmark }
     ]
 };
 
@@ -141,11 +141,17 @@ export default function ResponsiveNavbar() {
                                             </div>
                                         </Link>
                                     ))}
-                                    <div className='border-b-2 pb-2 cursor-pointer w-full'>
-                                        <Link href='/mint' passHref>
-                                            <Button className='w-full'>Launch App</Button>
-                                        </Link>
-                                    </div>
+                                    {appMode ? (
+                                        <div className='border-b-2 pb-2 w-full'>
+                                            <WalletBtn />
+                                        </div>
+                                    ) : (
+                                        <div className='border-b-2 pb-2 cursor-pointer w-full'>
+                                            <Link href='/mint' passHref>
+                                                <Button className='w-full'>Launch App</Button>
+                                            </Link>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -1,0 +1,2733 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.referral_june_2025_tasks": {
+      "name": "referral_june_2025_tasks",
+      "schema": "",
+      "columns": {
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "questionnaire": {
+          "name": "questionnaire",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.referral_june_2025": {
+      "name": "referral_june_2025",
+      "schema": "",
+      "columns": {
+        "referral_code": {
+          "name": "referral_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "used_at": {
+          "name": "used_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "referral_june_2025_referral_code_user_id_key": {
+          "columns": [
+            "referral_code",
+            "user_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "referral_june_2025_referral_code_user_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.mb_token_mint": {
+      "name": "mb_token_mint",
+      "schema": "",
+      "columns": {
+        "token_mint_id": {
+          "name": "token_mint_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "minting_amount": {
+          "name": "minting_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "minting_token_name": {
+          "name": "minting_token_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "minting_usd_amount": {
+          "name": "minting_usd_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recieving_token_amount": {
+          "name": "recieving_token_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recieving_token_name": {
+          "name": "recieving_token_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "minting_status": {
+          "name": "minting_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_mint_at": {
+          "name": "token_mint_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_index": {
+          "name": "transaction_index",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_liquidity_hub": {
+      "name": "te_liquidity_hub",
+      "schema": "",
+      "columns": {
+        "liquidation_id": {
+          "name": "liquidation_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "tick_in_address": {
+          "name": "tick_in_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_name": {
+          "name": "tick_in_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_amount": {
+          "name": "tick_in_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duration": {
+          "name": "duration",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "liquidation_type": {
+          "name": "liquidation_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "liquidation_mode": {
+          "name": "liquidation_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_status": {
+          "name": "transaction_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_timestamp": {
+          "name": "transaction_timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_network": {
+          "name": "tick_in_network",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_tx_block": {
+          "name": "tick_in_tx_block",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_top": {
+      "name": "bit10_top",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_top_timestmpz_idx": {
+          "name": "bit10_top_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_top_historical_data": {
+      "name": "bit10_top_historical_data",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_top_historical_data_timestmpz_idx": {
+          "name": "bit10_top_historical_data_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.swap": {
+      "name": "swap",
+      "schema": "",
+      "columns": {
+        "token_swap_id": {
+          "name": "token_swap_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_name": {
+          "name": "tick_in_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_amount": {
+          "name": "tick_in_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_usd_amount": {
+          "name": "tick_in_usd_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_tx_block": {
+          "name": "tick_in_tx_block",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_name": {
+          "name": "tick_out_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_amount": {
+          "name": "tick_out_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_tx_block": {
+          "name": "tick_out_tx_block",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_type": {
+          "name": "transaction_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_status": {
+          "name": "transaction_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_timestamp": {
+          "name": "transaction_timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network": {
+          "name": "network",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.test_bit10_top_rebalance": {
+      "name": "test_bit10_top_rebalance",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "index_value": {
+          "name": "index_value",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_of_token_to_buy": {
+          "name": "price_of_token_to_buy",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "new_tokens": {
+          "name": "new_tokens",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "added": {
+          "name": "added",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "removed": {
+          "name": "removed",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retained": {
+          "name": "retained",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "test_bit10_top_rebalance_timestmpz_idx": {
+          "name": "test_bit10_top_rebalance_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.referral_apr_2025": {
+      "name": "referral_apr_2025",
+      "schema": "",
+      "columns": {
+        "referral_code": {
+          "name": "referral_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "used_at": {
+          "name": "used_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "referral_apr_2025_referral_code_user_id_key": {
+          "columns": [
+            "referral_code",
+            "user_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "referral_apr_2025_referral_code_user_id_key"
+        },
+        "referral_apr_2025_user_id_key": {
+          "columns": [
+            "user_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "referral_apr_2025_user_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.referral_apr_2025_tasks": {
+      "name": "referral_apr_2025_tasks",
+      "schema": "",
+      "columns": {
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "task_1": {
+          "name": "task_1",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "task_2": {
+          "name": "task_2",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "task_3": {
+          "name": "task_3",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "referral_apr_2025_tasks_address_key": {
+          "columns": [
+            "address"
+          ],
+          "nullsNotDistinct": false,
+          "name": "referral_apr_2025_tasks_address_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_meme": {
+      "name": "bit10_meme",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_meme_timestmpz_idx": {
+          "name": "bit10_meme_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_meme_historical_data": {
+      "name": "bit10_meme_historical_data",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_meme_historical_data_timestmpz_idx": {
+          "name": "bit10_meme_historical_data_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_swap": {
+      "name": "te_swap",
+      "schema": "",
+      "columns": {
+        "token_swap_id": {
+          "name": "token_swap_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_name": {
+          "name": "tick_in_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_amount": {
+          "name": "tick_in_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_usd_amount": {
+          "name": "tick_in_usd_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_tx_block": {
+          "name": "tick_in_tx_block",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_name": {
+          "name": "tick_out_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_amount": {
+          "name": "tick_out_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_tx_block": {
+          "name": "tick_out_tx_block",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_type": {
+          "name": "transaction_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_status": {
+          "name": "transaction_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_timestamp": {
+          "name": "transaction_timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network": {
+          "name": "network",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.test_bit10_meme_rebalance": {
+      "name": "test_bit10_meme_rebalance",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "index_value": {
+          "name": "index_value",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_of_token_to_buy": {
+          "name": "price_of_token_to_buy",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "new_tokens": {
+          "name": "new_tokens",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "added": {
+          "name": "added",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "removed": {
+          "name": "removed",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retained": {
+          "name": "retained",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "test_bit10_meme_rebalance_timestmpz_idx": {
+          "name": "test_bit10_meme_rebalance_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.waitlist_address": {
+      "name": "waitlist_address",
+      "schema": "",
+      "columns": {
+        "waitlist_address_id": {
+          "name": "waitlist_address_id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "waitlist_address_waitlist_address_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "waitlist_address_address_key": {
+          "columns": [
+            "address"
+          ],
+          "nullsNotDistinct": false,
+          "name": "waitlist_address_address_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_defi": {
+      "name": "bit10_defi",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_defi_timestmpz_idx": {
+          "name": "bit10_defi_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_users": {
+      "name": "te_users",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "te_users_user_id_key": {
+          "columns": [
+            "user_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "te_users_user_id_key"
+        },
+        "te_users_user_principal_id_key": {
+          "columns": [
+            "user_principal_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "te_users_user_principal_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.user_signups": {
+      "name": "user_signups",
+      "schema": "",
+      "columns": {
+        "newsletter_subscribers_id": {
+          "name": "newsletter_subscribers_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "newsletter_subscribers_email_key": {
+          "columns": [
+            "email"
+          ],
+          "nullsNotDistinct": false,
+          "name": "newsletter_subscribers_email_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_token_swap": {
+      "name": "te_token_swap",
+      "schema": "",
+      "columns": {
+        "token_swap_id": {
+          "name": "token_swap_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_amount": {
+          "name": "token_purchase_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_name": {
+          "name": "token_purchase_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_usd_amount": {
+          "name": "token_purchase_usd_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10_token_quantity": {
+          "name": "bit10_token_quantity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10_token_name": {
+          "name": "bit10_token_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_transaction_status": {
+          "name": "token_transaction_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_bought_at": {
+          "name": "token_bought_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "te_token_swap_user_principal_id_te_users_user_principal_id_fk": {
+          "name": "te_token_swap_user_principal_id_te_users_user_principal_id_fk",
+          "tableFrom": "te_token_swap",
+          "tableTo": "te_users",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "user_principal_id"
+          ],
+          "columnsTo": [
+            "user_principal_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "te_token_swap_token_swap_id_key": {
+          "columns": [
+            "token_swap_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "te_token_swap_token_swap_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_request_btc": {
+      "name": "te_request_btc",
+      "schema": "",
+      "columns": {
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "btc_sent": {
+          "name": "btc_sent",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "te_request_btc_request_id_key": {
+          "columns": [
+            "request_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "te_request_btc_request_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_collateral_token_prices": {
+      "name": "bit10_collateral_token_prices",
+      "schema": "",
+      "columns": {
+        "bit10_token_name": {
+          "name": "bit10_token_name",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "price_of_token_to_buy": {
+          "name": "price_of_token_to_buy",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_brc20_rebalance": {
+      "name": "bit10_brc20_rebalance",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "index_value": {
+          "name": "index_value",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_of_token_to_buy": {
+          "name": "price_of_token_to_buy",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "new_tokens": {
+          "name": "new_tokens",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "added": {
+          "name": "added",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "removed": {
+          "name": "removed",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retained": {
+          "name": "retained",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_brc20_rebalance_timestmpz_idx": {
+          "name": "bit10_brc20_rebalance_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_brc20_historical_data": {
+      "name": "bit10_brc20_historical_data",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_brc20_historical_data_timestmpz_idx": {
+          "name": "bit10_brc20_historical_data_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_brc20": {
+      "name": "bit10_brc20",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_brc20_timestmpz_idx": {
+          "name": "bit10_brc20_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.token_swap": {
+      "name": "token_swap",
+      "schema": "",
+      "columns": {
+        "token_swap_id": {
+          "name": "token_swap_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_payment_address": {
+          "name": "user_payment_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_ordinals_address": {
+          "name": "user_ordinals_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_stacks_address": {
+          "name": "user_stacks_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_amount": {
+          "name": "token_purchase_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_name": {
+          "name": "token_purchase_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10_token_quantity": {
+          "name": "bit10_token_quantity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10_token_name": {
+          "name": "bit10_token_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_transaction_signature": {
+          "name": "token_transaction_signature",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_bought_at": {
+          "name": "token_bought_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_usd_amount": {
+          "name": "token_purchase_usd_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "token_swap_user_ordinals_address_users_user_ordinals_address_fk": {
+          "name": "token_swap_user_ordinals_address_users_user_ordinals_address_fk",
+          "tableFrom": "token_swap",
+          "tableTo": "users",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "user_ordinals_address"
+          ],
+          "columnsTo": [
+            "user_ordinals_address"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "token_swap_user_payment_address_users_user_payment_address_fk": {
+          "name": "token_swap_user_payment_address_users_user_payment_address_fk",
+          "tableFrom": "token_swap",
+          "tableTo": "users",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "user_payment_address"
+          ],
+          "columnsTo": [
+            "user_payment_address"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "token_swap_user_stacks_address_users_user_stacks_address_fk": {
+          "name": "token_swap_user_stacks_address_users_user_stacks_address_fk",
+          "tableFrom": "token_swap",
+          "tableTo": "users",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "user_stacks_address"
+          ],
+          "columnsTo": [
+            "user_stacks_address"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "token_swap_token_swap_id_key": {
+          "columns": [
+            "token_swap_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "token_swap_token_swap_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.mb_principal_id_whitelist": {
+      "name": "mb_principal_id_whitelist",
+      "schema": "",
+      "columns": {
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.mb_users": {
+      "name": "mb_users",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "mb_users_user_principal_id_key": {
+          "columns": [
+            "user_principal_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "mb_users_user_principal_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.mb_token_swap": {
+      "name": "mb_token_swap",
+      "schema": "",
+      "columns": {
+        "token_swap_id": {
+          "name": "token_swap_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_principal_id": {
+          "name": "user_principal_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_amount": {
+          "name": "token_purchase_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_name": {
+          "name": "token_purchase_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_purchase_usd_amount": {
+          "name": "token_purchase_usd_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10_token_quantity": {
+          "name": "bit10_token_quantity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10_token_name": {
+          "name": "bit10_token_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_transaction_status": {
+          "name": "token_transaction_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_bought_at": {
+          "name": "token_bought_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_index": {
+          "name": "transaction_index",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "mb_token_swap_user_principal_id_mb_users_user_principal_id_fk": {
+          "name": "mb_token_swap_user_principal_id_mb_users_user_principal_id_fk",
+          "tableFrom": "mb_token_swap",
+          "tableTo": "mb_users",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "user_principal_id"
+          ],
+          "columnsTo": [
+            "user_principal_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "mb_token_swap_transaction_index_key": {
+          "columns": [
+            "transaction_index"
+          ],
+          "nullsNotDistinct": false,
+          "name": "mb_token_swap_transaction_index_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.dex": {
+      "name": "dex",
+      "schema": "",
+      "columns": {
+        "swap_id": {
+          "name": "swap_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "pool_id": {
+          "name": "pool_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_wallet_address": {
+          "name": "tick_in_wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_wallet_address": {
+          "name": "tick_out_wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "swap_type": {
+          "name": "swap_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_chain": {
+          "name": "source_chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destination_chain": {
+          "name": "destination_chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_in_address": {
+          "name": "token_in_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_out_address": {
+          "name": "token_out_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_in": {
+          "name": "amount_in",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_out": {
+          "name": "amount_out",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slippage": {
+          "name": "slippage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_hash_in": {
+          "name": "tx_hash_in",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_hash_out": {
+          "name": "tx_hash_out",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "idx_dex_destination_chain": {
+          "name": "idx_dex_destination_chain",
+          "columns": [
+            {
+              "expression": "destination_chain",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_dex_source_chain": {
+          "name": "idx_dex_source_chain",
+          "columns": [
+            {
+              "expression": "source_chain",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_dex_timestamp": {
+          "name": "idx_dex_timestamp",
+          "columns": [
+            {
+              "expression": "timestamp",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "check_positive_amounts": {
+          "name": "check_positive_amounts",
+          "value": "((amount_in)::numeric >= (0)::numeric) AND ((amount_out)::numeric >= (0)::numeric)"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_sol_historical_data": {
+      "name": "bit10_sol_historical_data",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "token_price": {
+          "name": "token_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_sol_historical_data_timestmpz_idx": {
+          "name": "bit10_sol_historical_data_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.wallet_allocations": {
+      "name": "wallet_allocations",
+      "schema": "",
+      "columns": {
+        "wallet_address": {
+          "name": "wallet_address",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "explorer_address": {
+          "name": "explorer_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10": {
+          "name": "bit10",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_id": {
+          "name": "token_id",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_lend": {
+      "name": "te_lend",
+      "schema": "",
+      "columns": {
+        "lender_address": {
+          "name": "lender_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_chain": {
+          "name": "token_chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_address": {
+          "name": "token_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_amount": {
+          "name": "token_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_sent_trx_hash": {
+          "name": "token_sent_trx_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "interest_rate": {
+          "name": "interest_rate",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "return_amount": {
+          "name": "return_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "return_trx_hash": {
+          "name": "return_trx_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "return_timestamp": {
+          "name": "return_timestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "opened_at": {
+          "name": "opened_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lend_id": {
+          "name": "lend_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "idx_te_lend_lender_address": {
+          "name": "idx_te_lend_lender_address",
+          "columns": [
+            {
+              "expression": "lender_address",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "te_lend_lend_id_key": {
+          "columns": [
+            "lend_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "te_lend_lend_id_key"
+        }
+      },
+      "checkConstraints": {
+        "te_lend_status_check": {
+          "name": "te_lend_status_check",
+          "value": "status = ANY (ARRAY['Active'::text, 'Closed'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_borrow": {
+      "name": "te_borrow",
+      "schema": "",
+      "columns": {
+        "borrower_address": {
+          "name": "borrower_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "borrow_token_chain": {
+          "name": "borrow_token_chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "borrow_token_address": {
+          "name": "borrow_token_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "borrow_token_amount": {
+          "name": "borrow_token_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "borrow_trx_hash": {
+          "name": "borrow_trx_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "collateral_address": {
+          "name": "collateral_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "collateral_amount": {
+          "name": "collateral_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "collateral_trx_hash": {
+          "name": "collateral_trx_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "interest_rate": {
+          "name": "interest_rate",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "repayment_amount": {
+          "name": "repayment_amount",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "repayment_trx_hash": {
+          "name": "repayment_trx_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "repayment_timestamp": {
+          "name": "repayment_timestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "opened_at": {
+          "name": "opened_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "collateral_chain": {
+          "name": "collateral_chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "borrow_wallet_address": {
+          "name": "borrow_wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "borrow_id": {
+          "name": "borrow_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "idx_te_borrow_borrower_address": {
+          "name": "idx_te_borrow_borrower_address",
+          "columns": [
+            {
+              "expression": "borrower_address",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "te_borrow_borrow_id_key": {
+          "columns": [
+            "borrow_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "te_borrow_borrow_id_key"
+        }
+      },
+      "checkConstraints": {
+        "te_borrow_status_check": {
+          "name": "te_borrow_status_check",
+          "value": "status = ANY (ARRAY['Active'::text, 'Closed'::text, 'Liquidated'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_top_rebalance": {
+      "name": "bit10_top_rebalance",
+      "schema": "",
+      "columns": {
+        "timestmpz": {
+          "name": "timestmpz",
+          "type": "timestamp with time zone",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "index_value": {
+          "name": "index_value",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_of_token_to_buy": {
+          "name": "price_of_token_to_buy",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "new_tokens": {
+          "name": "new_tokens",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "added": {
+          "name": "added",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "removed": {
+          "name": "removed",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retained": {
+          "name": "retained",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "bit10_top_rebalance_timestmpz_idx": {
+          "name": "bit10_top_rebalance_timestmpz_idx",
+          "columns": [
+            {
+              "expression": "timestmpz",
+              "asc": false,
+              "nulls": "first",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.te_dex_swap": {
+      "name": "te_dex_swap",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "dex_swap_id_seq",
+            "increment": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "startWith": "1",
+            "cache": "1",
+            "cycle": false,
+            "schema": "public"
+          }
+        },
+        "amount_in": {
+          "name": "amount_in",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount_out": {
+          "name": "amount_out",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "destination_chain": {
+          "name": "destination_chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pool_id": {
+          "name": "pool_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slippage": {
+          "name": "slippage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_chain": {
+          "name": "source_chain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "swap_type": {
+          "name": "swap_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_in_wallet_address": {
+          "name": "tick_in_wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tick_out_wallet_address": {
+          "name": "tick_out_wallet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_in_address": {
+          "name": "token_in_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_out_address": {
+          "name": "token_out_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_hash_in": {
+          "name": "tx_hash_in",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tx_hash_out": {
+          "name": "tx_hash_out",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "idx_dex_swap_destination_chain": {
+          "name": "idx_dex_swap_destination_chain",
+          "columns": [
+            {
+              "expression": "destination_chain",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_dex_swap_source_chain": {
+          "name": "idx_dex_swap_source_chain",
+          "columns": [
+            {
+              "expression": "source_chain",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_dex_swap_timestamp": {
+          "name": "idx_dex_swap_timestamp",
+          "columns": [
+            {
+              "expression": "timestamp",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int8_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "check_positive_amounts": {
+          "name": "check_positive_amounts",
+          "value": "((amount_in)::numeric >= (0)::numeric) AND ((amount_out)::numeric >= (0)::numeric)"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_sol_comparison": {
+      "name": "bit10_sol_comparison",
+      "schema": "",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "bit10_sol": {
+          "name": "bit10_sol",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "btc": {
+          "name": "btc",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sol": {
+          "name": "sol",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eth": {
+          "name": "eth",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sp500": {
+          "name": "sp500",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gold": {
+          "name": "gold",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bit10_comparison": {
+      "name": "bit10_comparison",
+      "schema": "",
+      "columns": {
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "bit10_top": {
+          "name": "bit10_top",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "btc": {
+          "name": "btc",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sp500": {
+          "name": "sp500",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gold": {
+          "name": "gold",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bit10_sol": {
+          "name": "bit10_sol",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "sol": {
+          "name": "sol",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "eth": {
+          "name": "eth",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        }
+      },
+      "indexes": {
+        "idx_bit10_comparison_date": {
+          "name": "idx_bit10_comparison_date",
+          "columns": [
+            {
+              "expression": "date",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_payment_address": {
+          "name": "user_payment_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_ordinals_address": {
+          "name": "user_ordinals_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_stacks_address": {
+          "name": "user_stacks_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "users_pkey": {
+          "name": "users_pkey",
+          "columns": [
+            "user_id",
+            "user_payment_address"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "users_user_id_key": {
+          "columns": [
+            "user_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "users_user_id_key"
+        },
+        "users_user_payment_address_key": {
+          "columns": [
+            "user_payment_address"
+          ],
+          "nullsNotDistinct": false,
+          "name": "users_user_payment_address_key"
+        },
+        "users_user_ordinals_address_key": {
+          "columns": [
+            "user_ordinals_address"
+          ],
+          "nullsNotDistinct": false,
+          "name": "users_user_ordinals_address_key"
+        },
+        "users_user_stacks_address_key": {
+          "columns": [
+            "user_stacks_address"
+          ],
+          "nullsNotDistinct": false,
+          "name": "users_user_stacks_address_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.aal_level": {
+      "name": "aal_level",
+      "values": [
+        "aal1",
+        "aal2",
+        "aal3"
+      ],
+      "schema": "public"
+    },
+    "public.action": {
+      "name": "action",
+      "values": [
+        "INSERT",
+        "UPDATE",
+        "DELETE",
+        "TRUNCATE",
+        "ERROR"
+      ],
+      "schema": "public"
+    },
+    "public.code_challenge_method": {
+      "name": "code_challenge_method",
+      "values": [
+        "s256",
+        "plain"
+      ],
+      "schema": "public"
+    },
+    "public.equality_op": {
+      "name": "equality_op",
+      "values": [
+        "eq",
+        "neq",
+        "lt",
+        "lte",
+        "gt",
+        "gte",
+        "in"
+      ],
+      "schema": "public"
+    },
+    "public.factor_status": {
+      "name": "factor_status",
+      "values": [
+        "unverified",
+        "verified"
+      ],
+      "schema": "public"
+    },
+    "public.factor_type": {
+      "name": "factor_type",
+      "values": [
+        "totp",
+        "webauthn"
+      ],
+      "schema": "public"
+    },
+    "public.key_status": {
+      "name": "key_status",
+      "values": [
+        "default",
+        "valid",
+        "invalid",
+        "expired"
+      ],
+      "schema": "public"
+    },
+    "public.key_type": {
+      "name": "key_type",
+      "values": [
+        "aead-ietf",
+        "aead-det",
+        "hmacsha512",
+        "hmacsha256",
+        "auth",
+        "shorthash",
+        "generichash",
+        "kdf",
+        "secretbox",
+        "secretstream",
+        "stream_xchacha20"
+      ],
+      "schema": "public"
+    },
+    "public.one_time_token_type": {
+      "name": "one_time_token_type",
+      "values": [
+        "confirmation_token",
+        "reauthentication_token",
+        "recovery_token",
+        "email_change_token_new",
+        "email_change_token_current",
+        "phone_change_token"
+      ],
+      "schema": "public"
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {
+      "wallet_allocations": {
+        "columns": {
+          "bit10": {
+            "isArray": true,
+            "dimensions": 1,
+            "rawType": "text"
+          },
+          "token_id": {
+            "isArray": true,
+            "dimensions": 1,
+            "rawType": "text"
+          }
+        }
+      }
+    }
+  }
+}
