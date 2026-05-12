@@ -93,10 +93,10 @@ export const formatCompactPercentNumber = (value: number | string | null | undef
   if (absValue < 1) {
     const strValue = absValue.toFixed(20), [, decimalPart = ''] = strValue.split('.'), firstNonZeroIndex = decimalPart.search(/[1-9]/);
     if (firstNonZeroIndex === -1) return '0';
-    const significantDecimals = decimalPart.slice(0, firstNonZeroIndex + 2), formatted = parseFloat(`0.${significantDecimals}`);
-    let result = formatted.toFixed(Math.min(firstNonZeroIndex + 2, 4)).replace(/\.?0+$/, '');
-    if (parseFloat(result) >= 1) result = '1.0000';
-    return sign + result;
+
+    const decimalsNeeded = firstNonZeroIndex + 4;
+    const formatted = absValue.toFixed(decimalsNeeded).replace(/\.?0+$/, '');
+    return sign + formatted;
   }
 
   if (absValue < 1000) return sign + (Math.round(absValue * 10000) / 10000).toFixed(2).replace(/\.?0+$/, '');

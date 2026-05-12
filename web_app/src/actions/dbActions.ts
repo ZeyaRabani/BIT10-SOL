@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from '@/server/db';
-import { userSignups, walletAllocations, bit10SolSwap } from '@/server/db/schema';
+import { userSignups, walletAllocations, bit10SolSwap, bit10SolRebalance } from '@/server/db/schema';
 import { desc } from 'drizzle-orm';
 
 export const addUserSignUps = async ({ email }: { email: string }) => {
@@ -85,3 +85,17 @@ export const getBit10SolSwaps = async () => {
         return 'Error fetching swaps from database';
     }
 };
+
+export const getBit10SolRebalance = async () => {
+    try {
+        const data = await db
+            .select()
+            .from(bit10SolRebalance)
+            .orderBy(desc(bit10SolRebalance.timestmpz));
+        return data;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+        return 'Error fetching BIT10 SOL rebalance data';
+    }
+};
+

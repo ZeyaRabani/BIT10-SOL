@@ -467,6 +467,18 @@ export const bit10SolComparison = pgTable('bit10_sol_comparison', {
 	gold: numeric().notNull(),
 });
 
+export const bit10SolRebalance = pgTable('bit10_sol_rebalance', {
+	timestmpz: timestamp({ withTimezone: true, mode: 'string' }).primaryKey().notNull(),
+	indexValue: doublePrecision('index_value').notNull(),
+	priceOfTokenToBuy: doublePrecision('price_of_token_to_buy').notNull(),
+	newTokens: json('new_tokens').notNull(),
+	added: json().notNull(),
+	removed: json().notNull(),
+	retained: json().notNull(),
+}, (table) => [
+	index('bit10_sol_rebalance_timestmpz_idx').using('btree', table.timestmpz.desc().nullsFirst().op('timestamptz_ops')),
+]);
+
 export const bit10Comparison = pgTable('bit10_comparison', {
 	date: date().primaryKey().notNull(),
 	bit10Top: numeric('bit10_top').notNull(),
