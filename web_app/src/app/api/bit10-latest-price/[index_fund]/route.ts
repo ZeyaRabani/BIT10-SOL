@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ ind
 
     try {
         const res = await fetch(url)
-        const data = await res.json() as { timestmpz: string, tokenPrice: number, data: { id: string, name: string, symbol: string, price: number }[] }
+        const data = await res.json() as { timestmpz: string, tokenPrice: number, data: { id: string, name: string, symbol: string, price: number, marketCap: number }[] }
         return new Response(JSON.stringify(data), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }

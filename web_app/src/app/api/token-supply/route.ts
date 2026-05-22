@@ -18,8 +18,8 @@ export async function GET() {
             rawAmount: tokenSupply.value.amount,
             timestamp: new Date().toISOString(),
         });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-        console.error('Token supply error:', error);
         return Response.json(
             { error: 'Failed to fetch token supply' },
             { status: 500 }

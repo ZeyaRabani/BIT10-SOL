@@ -24,7 +24,8 @@ export const sellReceiveTokens = [
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const ROUTER_PROGRAM_ID = new PublicKey('7CQDVZbDr9DtmzjYUFK2SM1GEGGc4o2qeYoUBfFyYb9N');
-export const ORACLE_PROGRAM_ID = new PublicKey('AFAEYYsCPmwLsd97XWVJxbWnB7tHFqQ41hUZGK2fKWZX');
+export const ORACLE_ADDRESS = new PublicKey('2X3HQPE1oQfdpEvXieVPjVvafWcSxik2MALvXpPQK5Jc');
+export const RECIPIENT_ADDRESS = new PublicKey('key4yrLZ9RFDMqE9sNKTZEvVsPQXmJg46s2ooTw45du');
 export const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
 export const BIT10_SOL_MINT = new PublicKey('bitQG7BVz72Gu5L99bYRrZxTmFj8NPaFpT2uPp47yew');
 export const SOL_WRAPPED_MINT = new PublicKey('So11111111111111111111111111111111111111112');
