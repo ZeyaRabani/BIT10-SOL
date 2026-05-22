@@ -402,33 +402,23 @@ export const buyBIT10Token = async ({
     try {
         const connection = getCustomConnection();
 
-        if (!wallet.publicKey)       throw new Error('Connect wallet first');
+        if (!wallet.publicKey) throw new Error('Connect wallet first');
         if (!wallet.signTransaction) throw new Error('Wallet does not support signing');
 
-        const user    = wallet.publicKey as PublicKey;
+        const user = wallet.publicKey as PublicKey;
         const isSolIn = tokenInAddress === SOL_WRAPPED_MINT.toBase58();
 
-        const mintAuthorityPda  = derivePda(MINT_AUTH_SEED, ROUTER_PROGRAM_ID);
+        const mintAuthorityPda = derivePda(MINT_AUTH_SEED, ROUTER_PROGRAM_ID);
         const vaultAuthorityPda = derivePda(VAULT_AUTH_SEED, ROUTER_PROGRAM_ID);
 
         const tokenInDecimals = isSolIn ? SOL_DECIMALS : USDC_DECIMALS;
-        const mintAmountRaw   = toBaseUnits(tokenInAmount, tokenInDecimals);
+        const mintAmountRaw = toBaseUnits(tokenInAmount, tokenInDecimals);
         if (mintAmountRaw <= BigInt(0)) throw new Error('Amount must be greater than 0');
 
-        let tokenInMint: PublicKey;
+        let tokenInMint: PublicKey = USDC_MINT;
         let tokenInIs2022 = false;
-        let userTokenInAta: PublicKey;
-        let recipientTokenInAta: PublicKey;
-
-        if (isSolIn) {
-            tokenInMint         = USDC_MINT;
-            userTokenInAta      = getAssociatedTokenAddressSync(USDC_MINT, user, false);
-            recipientTokenInAta = getAssociatedTokenAddressSync(USDC_MINT, RECIPIENT_ADDRESS, false);
-        } else {
-            tokenInMint         = USDC_MINT;
-            userTokenInAta      = getAssociatedTokenAddressSync(tokenInMint, user, false);
-            recipientTokenInAta = getAssociatedTokenAddressSync(tokenInMint, RECIPIENT_ADDRESS, false);
-        }
+        let userTokenInAta: PublicKey = getAssociatedTokenAddressSync(USDC_MINT, user, false);
+        let recipientTokenInAta: PublicKey = getAssociatedTokenAddressSync(USDC_MINT, RECIPIENT_ADDRESS, false);
 
         const userTokenOutAta = getAta2022(
             BIT10_SOL_MINT, user, false,
@@ -440,7 +430,7 @@ export const buyBIT10Token = async ({
             : [userTokenInAta, recipientTokenInAta, userTokenOutAta];
 
         const [{ blockhash, lastValidBlockHeight }, ...accountInfos] = await Promise.all([
-            connection.getLatestBlockhash('confirmed'), // 'confirmed' not 'finalized' — much faster
+            connection.getLatestBlockhash('confirmed'),
             ...accountsToCheck.map((a) => connection.getAccountInfo(a, 'confirmed')),
         ]);
 
@@ -495,56 +485,36 @@ export const buyBIT10Token = async ({
             }
         }
 
-        const tokenInAddressPubkey = isSolIn ? SystemProgram.programId : USDC_MINT;
-
-        tx.add(buildMintInstruction(mintAmountRaw, tokenInAddressPubkey, {
-            oracle:              ORACLE_ADDRESS,
+        tx.add(buildMintInstruction(mintAmountRaw, isSolIn ? SystemProgram.programId : USDC_MINT, {
+            oracle: ORACLE_ADDRESS,
             user,
-            recipient:           RECIPIENT_ADDRESS,
+            recipient: RECIPIENT_ADDRESS,
             userTokenInAta,
             recipientTokenInAta,
             tokenInMint,
-            mintAuthority:       mintAuthorityPda,
+            mintAuthority: mintAuthorityPda,
             userTokenOutAta,
-            vaultAuthority:      vaultAuthorityPda,
+            vaultAuthority: vaultAuthorityPda,
         }));
 
-        tx.feePayer        = user;
+        tx.feePayer = user;
         tx.recentBlockhash = blockhash;
 
         const signed = await wallet.signTransaction(tx);
-        const sig    = await connection.sendRawTransaction(signed.serialize(), {
+        const sig = await connection.sendRawTransaction(signed.serialize(), {
             skipPreflight: false,
             maxRetries: 3,
         });
 
-        await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
-
-        const parsedLog: Record<string, string> = {};
-        for (let i = 0; i < 5; i++) {
-            const confirmedTx = await connection.getTransaction(sig, {
-                commitment: 'confirmed',
-                maxSupportedTransactionVersion: 0,
-            });
-            if (confirmedTx?.meta?.logMessages) {
-                for (const line of confirmedTx.meta.logMessages) {
-                    const trimmed = line.trim();
-                    if (!trimmed.startsWith('Program log: MintResult ')) continue;
-                    const rest  = trimmed.slice('Program log: MintResult '.length);
-                    const eqIdx = rest.indexOf('=');
-                    if (eqIdx === -1) continue;
-                    parsedLog[rest.slice(0, eqIdx).trim()] = rest.slice(eqIdx + 1).trim();
-                }
-                break;
-            }
-            await new Promise((r) => setTimeout(r, 2000));
-        }
-
-        void tokenOutAddress; void walletAddress;
+        await connection.confirmTransaction(
+            { signature: sig, blockhash, lastValidBlockHeight },
+            'confirmed',
+        );
 
         toast.success('BIT10.SOL minted successfully!');
         return sig;
     } catch (error: any) {
+        console.error(error);
         toast.error(error?.message ?? 'An error occurred while processing your request. Please try again!');
         throw error;
     }
@@ -567,12 +537,12 @@ export const sellBIT10Token = async ({
     try {
         const connection = getCustomConnection();
 
-        if (!wallet.publicKey)       throw new Error('Connect wallet first');
+        if (!wallet.publicKey) throw new Error('Connect wallet first');
         if (!wallet.signTransaction) throw new Error('Wallet does not support signing');
 
         const user = wallet.publicKey as PublicKey;
 
-        const vaultSolPda       = derivePda(VAULT_SOL_SEED, ROUTER_PROGRAM_ID);
+        const vaultSolPda = derivePda(VAULT_SOL_SEED, ROUTER_PROGRAM_ID);
         const vaultAuthorityPda = derivePda(VAULT_AUTH_SEED, ROUTER_PROGRAM_ID);
 
         const burnAmountRaw = toBaseUnits(tokenInAmount, BIT10_DECIMALS);
@@ -595,49 +565,31 @@ export const sellBIT10Token = async ({
         const tx = new Transaction();
 
         tx.add(buildBurnInstruction(burnAmountRaw, {
-            oracle:         ORACLE_ADDRESS,
+            oracle: ORACLE_ADDRESS,
             user,
             userTokenInAta,
             vaultSolPda,
             vaultAuthority: vaultAuthorityPda,
         }));
 
-        tx.feePayer        = user;
+        tx.feePayer = user;
         tx.recentBlockhash = blockhash;
 
         const signed = await wallet.signTransaction(tx);
-        const sig    = await connection.sendRawTransaction(signed.serialize(), {
+        const sig = await connection.sendRawTransaction(signed.serialize(), {
             skipPreflight: false,
             maxRetries: 3,
         });
 
-        await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
-
-        const parsedLog: Record<string, string> = {};
-        for (let i = 0; i < 5; i++) {
-            const confirmedTx = await connection.getTransaction(sig, {
-                commitment: 'confirmed',
-                maxSupportedTransactionVersion: 0,
-            });
-            if (confirmedTx?.meta?.logMessages) {
-                for (const line of confirmedTx.meta.logMessages) {
-                    const trimmed = line.trim();
-                    if (!trimmed.startsWith('Program log: BurnResult ')) continue;
-                    const rest  = trimmed.slice('Program log: BurnResult '.length);
-                    const eqIdx = rest.indexOf('=');
-                    if (eqIdx === -1) continue;
-                    parsedLog[rest.slice(0, eqIdx).trim()] = rest.slice(eqIdx + 1).trim();
-                }
-                break;
-            }
-            await new Promise((r) => setTimeout(r, 2000));
-        }
-
-        void tokenInAddress; void tokenOutAddress; void walletAddress;
+        await connection.confirmTransaction(
+            { signature: sig, blockhash, lastValidBlockHeight },
+            'confirmed',
+        );
 
         toast.success('BIT10.SOL sold successfully!');
         return sig;
     } catch (error: any) {
+        console.error(error);
         toast.error(error?.message ?? 'An error occurred while processing your request. Please try again!');
         throw error;
     }
