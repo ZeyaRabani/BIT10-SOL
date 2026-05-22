@@ -42,8 +42,8 @@ type TokenPriceData = {
 };
 
 const DEFAULT_WALLET = {
-    walletAddress: '8EYN3VhZAKVYRDtCgjRs9MjoBGuKpS8tykb7r8kVSvGV',
-    explorerAddress: 'https://solscan.io/account/8EYN3VhZAKVYRDtCgjRs9MjoBGuKpS8tykb7r8kVSvGV'
+    walletAddress: 'key4yrLZ9RFDMqE9sNKTZEvVsPQXmJg46s2ooTw45du',
+    explorerAddress: 'https://explorer.solana.com/address/key4yrLZ9RFDMqE9sNKTZEvVsPQXmJg46s2ooTw45du/tokens'
 };
 
 const color = ['#F7931A', '#3C3C3D', '#006097', '#F3BA2F', '#00FFA3', '#B51D06', '#C2A633', '#0033AD', '#29B6F6', '#ff0066'];
@@ -75,8 +75,9 @@ export default function Collateral() {
                 const result = await response.json();
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 setData(result);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (error) {
-                console.error('Error:', error);
+                toast.error('Error fetching Token Supply')
             } finally {
                 setLoading(false);
             }

@@ -84,7 +84,6 @@ export const fetchTokenBalance = async ({ tokenAddress, publicKey }: { tokenAddr
         if (errorMessage.includes('403')) {
             toast.error('RPC access forbidden. Please check your connection settings.');
         } else {
-            console.error('Detailed error:', errorMessage);
             if (!errorMessage.includes('TokenAccountNotFoundError')) {
                 toast.error('Error fetching balance. Please try again.');
             }
