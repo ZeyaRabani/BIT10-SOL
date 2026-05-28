@@ -514,7 +514,6 @@ export const buyBIT10Token = async ({
         toast.success('BIT10.SOL minted successfully!');
         return sig;
     } catch (error: any) {
-        console.error(error);
         toast.error(error?.message ?? 'An error occurred while processing your request. Please try again!');
         throw error;
     }
@@ -589,7 +588,6 @@ export const sellBIT10Token = async ({
         toast.success('BIT10.SOL sold successfully!');
         return sig;
     } catch (error: any) {
-        console.error(error);
         toast.error(error?.message ?? 'An error occurred while processing your request. Please try again!');
         throw error;
     }

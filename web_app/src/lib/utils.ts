@@ -175,6 +175,7 @@ export const getTokenName = (tokenAddress: string): string => {
 
   switch (normalizedAddress) {
     case 'So11111111111111111111111111111111111111112'.toLocaleLowerCase():
+    case '11111111111111111111111111111111':
       return 'SOL';
     case 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'.toLocaleLowerCase():
       return 'USDC';
@@ -190,6 +191,7 @@ export const getTokenExplorer = (tokenAddress: string): string => {
 
   switch (normalizedAddress) {
     case 'So11111111111111111111111111111111111111112'.toLocaleLowerCase():
+    case '11111111111111111111111111111111':
     case 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'.toLocaleLowerCase():
     case 'bitQG7BVz72Gu5L99bYRrZxTmFj8NPaFpT2uPp47yew'.toLocaleLowerCase():
       return 'https://explorer.solana.com/tx/';
