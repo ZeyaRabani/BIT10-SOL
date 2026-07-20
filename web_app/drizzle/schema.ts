@@ -1,5 +1,5 @@
-import { pgTable, text, boolean, unique, timestamp, doublePrecision, index, json, bigint, serial, varchar, foreignKey, check, date, numeric, primaryKey, pgEnum } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
+import { pgTable, text, boolean, unique, timestamp, doublePrecision, index, json, bigint, serial, varchar, foreignKey, check, date, numeric, primaryKey, pgEnum } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 export const aalLevel = pgEnum('aal_level', ['aal1', 'aal2', 'aal3'])
 export const action = pgEnum('action', ['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'ERROR'])
@@ -346,6 +346,19 @@ export const bit10SolHistoricalData = pgTable('bit10_sol_historical_data', {
 	index('bit10_sol_historical_data_timestmpz_idx').using('btree', table.timestmpz.desc().nullsFirst().op('timestamptz_ops')),
 ]);
 
+export const bit10SolNoSolComparison = pgTable('bit10__sol_no_sol_comparison', {
+	date: date().primaryKey().notNull(),
+	bit10SolNoSol: numeric('bit10_sol_no_sol').default('0').notNull(),
+	btc: numeric().notNull(),
+	sol: numeric().default('0').notNull(),
+	eth: numeric().default('0').notNull(),
+	sp500: numeric().notNull(),
+	gold: numeric().notNull(),
+	bit10Sol: numeric('bit10_sol').default('0').notNull(),
+}, (table) => [
+	index('idx_bit10__sol_no_sol_comparison_date').using('btree', table.date.asc().nullsLast().op('date_ops')),
+]);
+
 export const walletAllocations = pgTable('wallet_allocations', {
 	walletAddress: text('wallet_address').primaryKey().notNull(),
 	explorerAddress: text('explorer_address').notNull(),
@@ -450,7 +463,7 @@ export const bit10SolSwap = pgTable('bit10_sol_swap', {
 	tokenInTxHash: text('token_in_tx_hash'),
 	network: text(),
 	swapId: text('swap_id').primaryKey().notNull(),
-	tokenOutTxHash: text('token_out_tx_hash'),
+	tokenOutTxHash: text('token_out_tx_hash').array(),
 	userWalletAddress: text('user_wallet_address'),
 	transactionTimestamp: text('transaction_timestamp'),
 	tokenInUsdAmount: text('token_in_usd_amount'),

@@ -12,6 +12,13 @@ const MINT_AUTH_SEED: &[u8] = b"bit10-mint-authority";
 const VAULT_SOL_SEED: &[u8] = b"bit10-sol-vault";
 const VAULT_AUTH_SEED: &[u8] = b"bit10-vault-authority";
 
+const ORACLE_ADDRESS_STR: &str = "8zmM85Vk7aLpjRgw9V4jJtt7ZPPmeWaGQVTfK45T6WEC";
+
+const ORACLE_PROGRAM_ID_STR: &str = "9kWEcYpPbrB9C5yo9AKmS5HKHxqcwn4NzqhbJCsAh2bT";
+const ORACLE_STATE_DISCRIMINATOR: [u8; 8] = [97, 156, 157, 189, 194, 73, 8, 15];
+
+const RECIPIENT_ADDRESS_STR: &str = "key4yrLZ9RFDMqE9sNKTZEvVsPQXmJg46s2ooTw45du";
+
 const SOL_MINT_STR: &str = "So11111111111111111111111111111111111111112";
 const USDC_MINT_STR: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const BIT10_SOL_INDEX_MINT_STR: &str = "bitQG7BVz72Gu5L99bYRrZxTmFj8NPaFpT2uPp47yew";
@@ -47,16 +54,30 @@ pub mod bit10_exchange {
         let sol_marker: Pubkey = SOL_MINT_STR
             .parse()
             .map_err(|_| RouterError::InvalidMint)?;
-        let usdc_mint: Pubkey = USDC_MINT_STR
-            .parse()
-            .map_err(|_| RouterError::InvalidMint)?;
         let bit10_index_mint: Pubkey = BIT10_SOL_INDEX_MINT_STR
             .parse()
             .map_err(|_| RouterError::InvalidMint)?;
+        let oracle_address: Pubkey = ORACLE_ADDRESS_STR
+            .parse()
+            .map_err(|_| RouterError::InvalidMint)?;
+        let recipient_address: Pubkey = RECIPIENT_ADDRESS_STR
+            .parse()
+            .map_err(|_| RouterError::InvalidMint)?;
+
+        require_eq!(
+            ctx.accounts.oracle.key(),
+            oracle_address,
+            RouterError::InvalidOracleAccount
+        );
+
+        require_eq!(
+            ctx.accounts.recipient.key(),
+            recipient_address,
+            RouterError::InvalidRecipientAccount
+        );
 
         require!(
             token_in_address == sol_marker
-                || token_in_address == usdc_mint
                 || token_in_address == ctx.accounts.token_in_mint.key(),
             RouterError::InvalidTokenIn
         );
@@ -79,6 +100,7 @@ pub mod bit10_exchange {
             oracle_data.prices.bit10sol_price != 0,
             RouterError::OraclePriceZero
         );
+        require_price_fresh(oracle_data.prices.bit10sol_timestamp)?;
 
         log_index_weights(&oracle_data)?;
 
@@ -86,8 +108,10 @@ pub mod bit10_exchange {
         msg!("MINT token_in_is_sol={}", token_in_is_sol);
 
         let (token_in_price, token_in_precision): (u128, u128) = if token_in_is_sol {
+            require_price_fresh(oracle_data.prices.sol_timestamp)?;
             (oracle_data.prices.sol_price as u128, SOL_PRECISION)
         } else {
+            require_price_fresh(oracle_data.prices.usdc_timestamp)?;
             (oracle_data.prices.usdc_price as u128, USDC_PRECISION)
         };
 
@@ -140,20 +164,40 @@ pub mod bit10_exchange {
         msg!("MintResult transaction_timestamp={}", transaction_timestamp);
 
         if token_in_is_sol {
-            let vault_lamports = ctx.accounts.vault_sol_pda.to_account_info().lamports();
-            require!(
-                vault_lamports >= token_in_amount,
-                RouterError::InsufficientVaultLamports
-            );
+            anchor_lang::solana_program::program::invoke(
+                &anchor_lang::solana_program::system_instruction::transfer(
+                    ctx.accounts.user.key,
+                    ctx.accounts.recipient.key,
+                    token_in_amount,
+                ),
+                &[
+                    ctx.accounts.user.to_account_info(),
+                    ctx.accounts.recipient.to_account_info(),
+                    ctx.accounts.system_program.to_account_info(),
+                ],
+            )?;
         } else {
             let token_in_mint_owner = ctx.accounts.token_in_mint.to_account_info().owner;
             let token1_program_id = token_1::ID;
             let token2022_program_id = token_2022::ID;
 
+            verify_token_account(
+                &ctx.accounts.user_token_in_ata.to_account_info(),
+                token_in_mint_owner,
+                &ctx.accounts.token_in_mint.key(),
+                &ctx.accounts.user.key(),
+            )?;
+            verify_token_account(
+                &ctx.accounts.recipient_token_in_ata.to_account_info(),
+                token_in_mint_owner,
+                &ctx.accounts.token_in_mint.key(),
+                &recipient_address,
+            )?;
+
             if token_in_mint_owner == &token1_program_id {
                 let cpi_accounts = token_1::Transfer {
                     from: ctx.accounts.user_token_in_ata.to_account_info(),
-                    to: ctx.accounts.vault_token_in_ata.to_account_info(),
+                    to: ctx.accounts.recipient_token_in_ata.to_account_info(),
                     authority: ctx.accounts.user.to_account_info(),
                 };
                 let cpi_ctx = CpiContext::new(
@@ -167,7 +211,7 @@ pub mod bit10_exchange {
                 )?;
                 let cpi_accounts = token_2022::TransferChecked {
                     from: ctx.accounts.user_token_in_ata.to_account_info(),
-                    to: ctx.accounts.vault_token_in_ata.to_account_info(),
+                    to: ctx.accounts.recipient_token_in_ata.to_account_info(),
                     authority: ctx.accounts.user.to_account_info(),
                     mint: ctx.accounts.token_in_mint.to_account_info(),
                 };
@@ -224,6 +268,15 @@ pub mod bit10_exchange {
         let bit10_index_mint: Pubkey = BIT10_SOL_INDEX_MINT_STR
             .parse()
             .map_err(|_| RouterError::InvalidMint)?;
+        let oracle_address: Pubkey = ORACLE_ADDRESS_STR
+            .parse()
+            .map_err(|_| RouterError::InvalidMint)?;
+
+        require_eq!(
+            ctx.accounts.oracle.key(),
+            oracle_address,
+            RouterError::InvalidOracleAccount
+        );
 
         require!(token_in_address == bit10_index_mint, RouterError::InvalidTokenIn);
         require!(
@@ -246,6 +299,8 @@ pub mod bit10_exchange {
             RouterError::OraclePriceZero
         );
         require!(oracle_data.prices.sol_price != 0, RouterError::OraclePriceZero);
+        require_price_fresh(oracle_data.prices.bit10sol_timestamp)?;
+        require_price_fresh(oracle_data.prices.sol_timestamp)?;
 
         log_index_weights(&oracle_data)?;
 
@@ -309,6 +364,13 @@ pub mod bit10_exchange {
         msg!("BurnResult user_wallet_address={}", user_wallet_address);
         msg!("BurnResult transaction_timestamp={}", transaction_timestamp);
 
+        verify_token_account(
+            &ctx.accounts.user_token_in_ata.to_account_info(),
+            &token_2022::ID,
+            &ctx.accounts.token_in_mint.key(),
+            &ctx.accounts.user.key(),
+        )?;
+
         let cpi_accounts = token_2022::Burn {
             mint: ctx.accounts.token_in_mint.to_account_info(),
             from: ctx.accounts.user_token_in_ata.to_account_info(),
@@ -319,25 +381,6 @@ pub mod bit10_exchange {
             cpi_accounts,
         );
         token2022_burn(cpi_ctx, token_in_amount)?;
-
-        let vault_sol_bump = ctx.bumps.vault_sol_pda;
-        let vault_seeds_inner: [&[u8]; 2] =
-            [VAULT_SOL_SEED, &[vault_sol_bump]];
-        let vault_signer_seeds: [&[&[u8]]; 1] = [&vault_seeds_inner];
-
-        anchor_lang::solana_program::program::invoke_signed(
-            &anchor_lang::solana_program::system_instruction::transfer(
-                ctx.accounts.vault_sol_pda.key,
-                ctx.accounts.user.key,
-                token_out_lamports,
-            ),
-            &[
-                ctx.accounts.vault_sol_pda.to_account_info(),
-                ctx.accounts.user.to_account_info(),
-                ctx.accounts.system_program.to_account_info(),
-            ],
-            &vault_signer_seeds,
-        )?;
 
         Ok(BurnResult {
             token_in_amount: token_in_amount.to_string(),
@@ -359,6 +402,9 @@ pub struct OraclePrices {
     pub bit10sol_price: u64,
     pub sol_price: u64,
     pub usdc_price: u64,
+    pub bit10sol_timestamp: i64,
+    pub sol_timestamp: i64,
+    pub usdc_timestamp: i64,
 }
 
 #[derive(Clone, Debug)]
@@ -384,6 +430,15 @@ fn read_u64_le(data: &[u8], offset: usize) -> Result<u64> {
     Ok(u64::from_le_bytes(b))
 }
 
+fn read_i64_le(data: &[u8], offset: usize) -> Result<i64> {
+    if data.len() < offset + 8 {
+        return err!(RouterError::OracleDataTooSmall);
+    }
+    let mut b = [0u8; 8];
+    b.copy_from_slice(&data[offset..offset + 8]);
+    Ok(i64::from_le_bytes(b))
+}
+
 fn read_bytes_fixed<const N: usize>(data: &[u8], offset: usize) -> Result<[u8; N]> {
     if data.len() < offset + N {
         return err!(RouterError::OracleDataTooSmall);
@@ -394,17 +449,32 @@ fn read_bytes_fixed<const N: usize>(data: &[u8], offset: usize) -> Result<[u8; N
 }
 
 fn decode_oracle(oracle: &UncheckedAccount) -> Result<OracleData> {
+    let oracle_program_id: Pubkey = ORACLE_PROGRAM_ID_STR
+        .parse()
+        .map_err(|_| RouterError::InvalidMint)?;
+    require_keys_eq!(
+        *oracle.to_account_info().owner,
+        oracle_program_id,
+        RouterError::InvalidOracleAccount
+    );
+
     let oracle_data = oracle.try_borrow_data()?;
 
     if oracle_data.len() < ORACLE_DISCRIMINATOR_LEN {
         return err!(RouterError::OracleDataTooSmall);
     }
+    
+    require!(
+        oracle_data[..ORACLE_DISCRIMINATOR_LEN] == ORACLE_STATE_DISCRIMINATOR,
+        RouterError::OracleDeserializeFailed
+    );
 
     let d = &oracle_data[ORACLE_DISCRIMINATOR_LEN..];
 
     const TOKEN_DATA_LEN: usize = 122;
     let tokens_len = MAX_INDEX_TOKENS * TOKEN_DATA_LEN;
 
+    let bit10sol_timestamp_offset = 32;
     let bit10sol_price_offset = 32 + 8;
     let bit10sol_token_count_offset = 32 + 8 + 8;
     let bit10sol_tokens_offset = 32 + 8 + 8 + 1;
@@ -415,8 +485,11 @@ fn decode_oracle(oracle: &UncheckedAccount) -> Result<OracleData> {
     let usdc_timestamp_offset = sol_price_offset + 8 + 8;
     let usdc_price_offset = usdc_timestamp_offset + 8;
 
+    let bit10sol_timestamp = read_i64_le(d, bit10sol_timestamp_offset)?;
     let bit10sol_price = read_u64_le(d, bit10sol_price_offset)?;
+    let sol_timestamp = read_i64_le(d, sol_timestamp_offset)?;
     let sol_price = read_u64_le(d, sol_price_offset)?;
+    let usdc_timestamp = read_i64_le(d, usdc_timestamp_offset)?;
     let usdc_price = read_u64_le(d, usdc_price_offset)?;
 
     let token_count = if d.len() > bit10sol_token_count_offset {
@@ -456,10 +529,24 @@ fn decode_oracle(oracle: &UncheckedAccount) -> Result<OracleData> {
             bit10sol_price,
             sol_price,
             usdc_price,
+            bit10sol_timestamp,
+            sol_timestamp,
+            usdc_timestamp,
         },
         tokens,
         token_count,
     })
+}
+
+const MAX_ORACLE_STALENESS_SECS: i64 = 300;
+
+fn require_price_fresh(price_timestamp: i64) -> Result<()> {
+    let now = Clock::get()?.unix_timestamp;
+    require!(
+        now.saturating_sub(price_timestamp) <= MAX_ORACLE_STALENESS_SECS,
+        RouterError::OraclePriceStale
+    );
+    Ok(())
 }
 
 fn log_index_weights(oracle_data: &OracleData) -> Result<()> {
@@ -559,6 +646,23 @@ fn pubkey_bytes_to_string(bytes: &[u8; 32]) -> String {
     String::from_utf8(encoded).unwrap_or_default()
 }
 
+fn verify_token_account(
+    account: &AccountInfo,
+    token_program_id: &Pubkey,
+    expected_mint: &Pubkey,
+    expected_owner: &Pubkey,
+) -> Result<()> {
+    require_keys_eq!(*account.owner, *token_program_id, RouterError::InvalidTokenInProgram);
+
+    let data = account.try_borrow_data()?;
+    if data.len() < 64 {
+        return err!(RouterError::TokenMintDataTooSmall);
+    }
+    require!(data[0..32] == expected_mint.to_bytes(), RouterError::InvalidTokenAccountMint);
+    require!(data[32..64] == expected_owner.to_bytes(), RouterError::InvalidTokenAccountOwner);
+    Ok(())
+}
+
 fn read_token_mint_decimals(mint_account: &AccountInfo) -> Result<u8> {
     let data = mint_account.try_borrow_data()?;
     const DECIMALS_OFFSET: usize = 44;
@@ -611,15 +715,26 @@ pub struct MintCtx<'info> {
     pub user: Signer<'info>,
 
     #[account(mut)]
+    pub recipient: UncheckedAccount<'info>,
+
+    #[account(mut)]
     pub user_token_in_ata: UncheckedAccount<'info>,
 
     #[account(mut)]
-    pub vault_token_in_ata: UncheckedAccount<'info>,
+    pub recipient_token_in_ata: UncheckedAccount<'info>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = *token_in_mint.owner == token_1::ID
+            || *token_in_mint.owner == token_2022::ID
+            @ RouterError::InvalidTokenInProgram
+    )]
     pub token_in_mint: UncheckedAccount<'info>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = *token_out_mint.owner == token_2022::ID @ RouterError::InvalidTokenOutProgram
+    )]
     pub token_out_mint: UncheckedAccount<'info>,
 
     #[account(seeds = [MINT_AUTH_SEED], bump)]
@@ -628,11 +743,11 @@ pub struct MintCtx<'info> {
     #[account(mut)]
     pub user_token_out_ata: UncheckedAccount<'info>,
 
-    #[account(mut, seeds = [VAULT_SOL_SEED], bump)]
-    pub vault_sol_pda: UncheckedAccount<'info>,
-
+    #[account(constraint = token_program_in_1.key() == token_1::ID @ RouterError::InvalidTokenInProgram)]
     pub token_program_in_1: Program<'info, Token>,
+    #[account(constraint = token_program_in_2022.key() == token_2022::ID @ RouterError::InvalidTokenInProgram)]
     pub token_program_in_2022: Program<'info, token_2022::Token2022>,
+    #[account(constraint = token_program_out_2022.key() == token_2022::ID @ RouterError::InvalidTokenOutProgram)]
     pub token_program_out_2022: Program<'info, token_2022::Token2022>,
 
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -655,15 +770,19 @@ pub struct BurnCtx<'info> {
     #[account(mut)]
     pub user_token_in_ata: UncheckedAccount<'info>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = *token_in_mint.owner == token_2022::ID @ RouterError::InvalidTokenInProgram
+    )]
     pub token_in_mint: UncheckedAccount<'info>,
 
     #[account(mut, seeds = [VAULT_SOL_SEED], bump)]
     pub vault_sol_pda: UncheckedAccount<'info>,
 
+    #[account(constraint = token_program_in_2022.key() == token_2022::ID @ RouterError::InvalidTokenInProgram)]
     pub token_program_in_2022: Program<'info, token_2022::Token2022>,
     pub system_program: Program<'info, System>,
-
+    
     #[account(seeds = [VAULT_AUTH_SEED], bump)]
     pub vault_authority: UncheckedAccount<'info>,
 }
@@ -713,6 +832,9 @@ pub enum RouterError {
     #[msg("Oracle price is zero")]
     OraclePriceZero,
 
+    #[msg("Oracle price data is stale")]
+    OraclePriceStale,
+
     #[msg("Oracle account data too small")]
     OracleDataTooSmall,
 
@@ -725,9 +847,24 @@ pub enum RouterError {
     #[msg("Invalid token in program id (neither token-1 nor token-2022)")]
     InvalidTokenInProgram,
 
+    #[msg("Invalid token out program id (must be token-2022)")]
+    InvalidTokenOutProgram,
+
     #[msg("Token mint data too small to read decimals")]
     TokenMintDataTooSmall,
 
     #[msg("Insufficient vault lamports")]
     InsufficientVaultLamports,
+
+    #[msg("Invalid oracle account - must be the hardcoded oracle")]
+    InvalidOracleAccount,
+
+    #[msg("Invalid recipient account - must be the hardcoded recipient")]
+    InvalidRecipientAccount,
+
+    #[msg("Token account mint does not match the expected mint")]
+    InvalidTokenAccountMint,
+
+    #[msg("Token account owner does not match the expected owner")]
+    InvalidTokenAccountOwner,
 }
