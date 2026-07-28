@@ -23,6 +23,7 @@ const SOL_MINT_STR: &str = "So11111111111111111111111111111111111111112";
 const USDC_MINT_STR: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const BIT10_SOL_INDEX_MINT_STR: &str = "bitQG7BVz72Gu5L99bYRrZxTmFj8NPaFpT2uPp47yew";
 
+
 const SOL_TOKEN_ADDRESS: &str = "So11111111111111111111111111111111111111112";
 
 declare_id!("7CQDVZbDr9DtmzjYUFK2SM1GEGGc4o2qeYoUBfFyYb9N");
@@ -36,10 +37,12 @@ const ORACLE_DISCRIMINATOR_LEN: usize = 8;
 
 const BIT10_DECIMALS: u128 = 1_000_000_000;
 const SOL_PRECISION: u128 = 1_000_000_000;
-const USDC_PRECISION: u128 = 1_000_000;
+const USDC_PRECISION: u128 = 1_000_000; 
 
 const FEE_NUMERATOR: u128 = 5;
 const FEE_DENOMINATOR: u128 = 1000;
+
+const MAX_SANE_PRICE: u64 = 10_000_000_000_000_000;
 
 #[program]
 pub mod bit10_exchange {
@@ -109,9 +112,19 @@ pub mod bit10_exchange {
 
         let (token_in_price, token_in_precision): (u128, u128) = if token_in_is_sol {
             require_price_fresh(oracle_data.prices.sol_timestamp)?;
+            require!(oracle_data.prices.sol_price != 0, RouterError::OraclePriceZero);
             (oracle_data.prices.sol_price as u128, SOL_PRECISION)
         } else {
+            let usdc_mint: Pubkey = USDC_MINT_STR
+                .parse()
+                .map_err(|_| RouterError::InvalidMint)?;
+            require_keys_eq!(
+                ctx.accounts.token_in_mint.key(),
+                usdc_mint,
+                RouterError::InvalidTokenIn
+            );
             require_price_fresh(oracle_data.prices.usdc_timestamp)?;
+            require!(oracle_data.prices.usdc_price != 0, RouterError::OraclePriceZero);
             (oracle_data.prices.usdc_price as u128, USDC_PRECISION)
         };
 
@@ -224,6 +237,13 @@ pub mod bit10_exchange {
                 return err!(RouterError::InvalidTokenInProgram);
             }
         }
+
+        verify_token_account(
+            &ctx.accounts.user_token_out_ata.to_account_info(),
+            &token_2022::ID,
+            &ctx.accounts.token_out_mint.key(),
+            &ctx.accounts.user.key(),
+        )?;
 
         let mint_auth_bump = ctx.bumps.mint_authority;
         let signer_seeds_inner: [&[u8]; 2] =
@@ -463,7 +483,7 @@ fn decode_oracle(oracle: &UncheckedAccount) -> Result<OracleData> {
     if oracle_data.len() < ORACLE_DISCRIMINATOR_LEN {
         return err!(RouterError::OracleDataTooSmall);
     }
-    
+
     require!(
         oracle_data[..ORACLE_DISCRIMINATOR_LEN] == ORACLE_STATE_DISCRIMINATOR,
         RouterError::OracleDeserializeFailed
@@ -471,8 +491,13 @@ fn decode_oracle(oracle: &UncheckedAccount) -> Result<OracleData> {
 
     let d = &oracle_data[ORACLE_DISCRIMINATOR_LEN..];
 
+    require_eq!(d.len(), EXPECTED_ORACLE_DATA_LEN, RouterError::OracleDataTooSmall);
+
     const TOKEN_DATA_LEN: usize = 122;
     let tokens_len = MAX_INDEX_TOKENS * TOKEN_DATA_LEN;
+
+    const EXPECTED_ORACLE_DATA_LEN: usize =
+        32 + 8 + 8 + 1 + (MAX_INDEX_TOKENS * TOKEN_DATA_LEN) + 24 + 24 + 24 + 64;
 
     let bit10sol_timestamp_offset = 32;
     let bit10sol_price_offset = 32 + 8;
@@ -491,6 +516,10 @@ fn decode_oracle(oracle: &UncheckedAccount) -> Result<OracleData> {
     let sol_price = read_u64_le(d, sol_price_offset)?;
     let usdc_timestamp = read_i64_le(d, usdc_timestamp_offset)?;
     let usdc_price = read_u64_le(d, usdc_price_offset)?;
+
+    require!(bit10sol_price <= MAX_SANE_PRICE, RouterError::OraclePriceOutOfBounds);
+    require!(sol_price <= MAX_SANE_PRICE, RouterError::OraclePriceOutOfBounds);
+    require!(usdc_price <= MAX_SANE_PRICE, RouterError::OraclePriceOutOfBounds);
 
     let token_count = if d.len() > bit10sol_token_count_offset {
         d[bit10sol_token_count_offset]
@@ -782,7 +811,7 @@ pub struct BurnCtx<'info> {
     #[account(constraint = token_program_in_2022.key() == token_2022::ID @ RouterError::InvalidTokenInProgram)]
     pub token_program_in_2022: Program<'info, token_2022::Token2022>,
     pub system_program: Program<'info, System>,
-    
+
     #[account(seeds = [VAULT_AUTH_SEED], bump)]
     pub vault_authority: UncheckedAccount<'info>,
 }
@@ -867,4 +896,7 @@ pub enum RouterError {
 
     #[msg("Token account owner does not match the expected owner")]
     InvalidTokenAccountOwner,
+
+    #[msg("Oracle price is out of sane bounds")]
+    OraclePriceOutOfBounds,
 }

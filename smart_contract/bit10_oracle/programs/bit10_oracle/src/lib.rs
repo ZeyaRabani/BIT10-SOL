@@ -15,6 +15,9 @@ pub const MAX_REBALANCE_LIST_SIZE: usize = 10;
 
 const ORACLE_STATE_DISCRIMINATOR: [u8; 8] = [97, 156, 157, 189, 194, 73, 8, 15];
 
+const MAX_FUTURE_DRIFT_SECS: i64 = 60;
+const MAX_STALENESS_SECS: i64 = 300;
+
 const OFF_AUTHORITY:                   usize = 8;
 const OFF_BIT10SOL_TIMESTAMP:          usize = 40;
 const OFF_BIT10SOL_PRICE:              usize = 48;
@@ -68,6 +71,16 @@ fn check_discriminator(data: &[u8]) -> Result<()> {
     Ok(())
 }
 
+fn validate_timestamp(data: &[u8], offset: usize, new_ts: i64) -> Result<()> {
+    let now = Clock::get()?.unix_timestamp;
+    require!(new_ts <= now.saturating_add(MAX_FUTURE_DRIFT_SECS), OracleError::TimestampInFuture);
+    require!(new_ts >= now.saturating_sub(MAX_STALENESS_SECS), OracleError::TimestampTooStale);
+
+    let prev = i64::from_le_bytes(data[offset..offset + 8].try_into().unwrap());
+    require!(new_ts >= prev, OracleError::TimestampNotMonotonic);
+    Ok(())
+}
+
 fn write_token_data(data: &mut [u8], array_base: usize, slot: usize, token: &TokenData) {
     let base = array_base + slot * TOKEN_DATA_LEN;
     data[base..base + 32].copy_from_slice(&token.id);
@@ -93,9 +106,13 @@ pub mod bit10_oracle {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        verify_updater(&ctx.accounts.authority.key())?;
+
         let oracle_info    = ctx.accounts.oracle.to_account_info();
         let authority_info = ctx.accounts.authority.to_account_info();
         let system_program = ctx.accounts.system_program.to_account_info();
+
+        require!(oracle_info.lamports() == 0, OracleError::AlreadyInitialized);
 
         let space = OracleState::LEN;
         let rent  = Rent::get()?.minimum_balance(space);
@@ -124,10 +141,14 @@ pub mod bit10_oracle {
     }
 
     pub fn force_close(ctx: Context<ForceClose>) -> Result<()> {
-        verify_updater(&ctx.accounts.authority.key())?;
-
         let oracle_info    = ctx.accounts.oracle.to_account_info();
         let authority_info = ctx.accounts.authority.to_account_info();
+
+        {
+            let data = oracle_info.try_borrow_data()?;
+            check_discriminator(&data)?;
+            verify_authority(&data, &authority_info.key())?;
+        }
 
         let lamports = oracle_info.lamports();
         **oracle_info.try_borrow_mut_lamports()? -= lamports;
@@ -142,18 +163,31 @@ pub mod bit10_oracle {
         Ok(())
     }
 
+    pub fn update_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
+        let oracle_info = ctx.accounts.oracle.to_account_info();
+        let mut data = oracle_info.try_borrow_mut_data()?;
+        check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.authority.key())?;
+
+        data[OFF_AUTHORITY..OFF_AUTHORITY + 32].copy_from_slice(new_authority.as_ref());
+
+        msg!("Oracle authority rotated to {}", new_authority);
+        Ok(())
+    }
+
     pub fn update_bit10sol_header(
         ctx: Context<UpdateOracle>,
         timestamp: i64,
         index_price: u64,
         token_count: u8,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
         require!((token_count as usize) <= MAX_INDEX_TOKENS, OracleError::TooManyTokens);
 
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
+        validate_timestamp(&data, OFF_BIT10SOL_TIMESTAMP, timestamp)?;
 
         write_i64(&mut data, OFF_BIT10SOL_TIMESTAMP, timestamp);
         write_u64(&mut data, OFF_BIT10SOL_PRICE, index_price);
@@ -168,7 +202,6 @@ pub mod bit10_oracle {
         start_index: u8,
         tokens: Vec<TokenData>,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
         require!(!tokens.is_empty(), OracleError::EmptyChunk);
         require!(tokens.len() <= MAX_CHUNK_SIZE, OracleError::ChunkTooLarge);
 
@@ -180,6 +213,7 @@ pub mod bit10_oracle {
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
 
         for (i, token) in tokens.iter().enumerate() {
             let slot = (start_index as usize) + i;
@@ -197,11 +231,11 @@ pub mod bit10_oracle {
         price: u64,
         market_cap: u64,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
-
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
+        validate_timestamp(&data, OFF_SOL_TIMESTAMP, timestamp)?;
 
         write_i64(&mut data, OFF_SOL_TIMESTAMP, timestamp);
         write_u64(&mut data, OFF_SOL_PRICE, price);
@@ -217,11 +251,11 @@ pub mod bit10_oracle {
         price: u64,
         market_cap: u64,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
-
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
+        validate_timestamp(&data, OFF_USDC_TIMESTAMP, timestamp)?;
 
         write_i64(&mut data, OFF_USDC_TIMESTAMP, timestamp);
         write_u64(&mut data, OFF_USDC_PRICE, price);
@@ -237,11 +271,11 @@ pub mod bit10_oracle {
         price: u64,
         market_cap: u64,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
-
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
+        validate_timestamp(&data, OFF_UTILITY_TIMESTAMP, timestamp)?;
 
         write_i64(&mut data, OFF_UTILITY_TIMESTAMP, timestamp);
         write_u64(&mut data, OFF_UTILITY_PRICE, price);
@@ -261,7 +295,6 @@ pub mod bit10_oracle {
         removed_count: u8,
         retained_count: u8,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
         require!((new_token_count as usize) <= MAX_INDEX_TOKENS, OracleError::TooManyTokens);
         require!((added_count    as usize) <= MAX_REBALANCE_LIST_SIZE, OracleError::RebalanceListTooLarge);
         require!((removed_count  as usize) <= MAX_REBALANCE_LIST_SIZE, OracleError::RebalanceListTooLarge);
@@ -270,6 +303,8 @@ pub mod bit10_oracle {
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
+        validate_timestamp(&data, OFF_REBALANCE_TIMESTAMP, timestamp)?;
 
         write_i64(&mut data, OFF_REBALANCE_TIMESTAMP,      timestamp);
         write_u64(&mut data, OFF_REBALANCE_INDEX_VALUE,    index_value);
@@ -292,7 +327,6 @@ pub mod bit10_oracle {
         start_index: u8,
         tokens: Vec<RebalanceTokenData>,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
         require!(!tokens.is_empty(), OracleError::EmptyChunk);
         require!(tokens.len() <= MAX_CHUNK_SIZE, OracleError::ChunkTooLarge);
 
@@ -304,6 +338,7 @@ pub mod bit10_oracle {
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_NEW_TOKENS, (start_index as usize) + i, token);
@@ -317,7 +352,6 @@ pub mod bit10_oracle {
         start_index: u8,
         tokens: Vec<RebalanceTokenData>,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
         require!(!tokens.is_empty(), OracleError::EmptyChunk);
         require!(tokens.len() <= MAX_CHUNK_SIZE, OracleError::ChunkTooLarge);
 
@@ -329,6 +363,7 @@ pub mod bit10_oracle {
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_ADDED, (start_index as usize) + i, token);
@@ -342,7 +377,6 @@ pub mod bit10_oracle {
         start_index: u8,
         tokens: Vec<RebalanceTokenData>,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
         require!(!tokens.is_empty(), OracleError::EmptyChunk);
         require!(tokens.len() <= MAX_CHUNK_SIZE, OracleError::ChunkTooLarge);
 
@@ -354,6 +388,7 @@ pub mod bit10_oracle {
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_REMOVED, (start_index as usize) + i, token);
@@ -367,7 +402,6 @@ pub mod bit10_oracle {
         start_index: u8,
         tokens: Vec<RebalanceTokenData>,
     ) -> Result<()> {
-        verify_updater(&ctx.accounts.updater.key())?;
         require!(!tokens.is_empty(), OracleError::EmptyChunk);
         require!(tokens.len() <= MAX_CHUNK_SIZE, OracleError::ChunkTooLarge);
 
@@ -379,6 +413,7 @@ pub mod bit10_oracle {
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_RETAINED, (start_index as usize) + i, token);
@@ -393,6 +428,12 @@ fn verify_updater(updater: &Pubkey) -> Result<()> {
         .parse()
         .map_err(|_| OracleError::InvalidAuthority)?;
     require!(*updater == authorized_key, OracleError::Unauthorized);
+    Ok(())
+}
+
+fn verify_authority(data: &[u8], signer: &Pubkey) -> Result<()> {
+    let stored = &data[OFF_AUTHORITY..OFF_AUTHORITY + 32];
+    require!(stored == signer.as_ref(), OracleError::Unauthorized);
     Ok(())
 }
 
@@ -417,8 +458,16 @@ pub struct ForceClose<'info> {
 }
 
 #[derive(Accounts)]
-pub struct UpdateOracle<'info> {
+pub struct UpdateAuthority<'info> {
     #[account(mut, seeds = [b"bit10-oracle"], bump)]
+    pub oracle: UncheckedAccount<'info>,
+
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateOracle<'info> {
+   #[account(mut, seeds = [b"bit10-oracle"], bump)]
     pub oracle: UncheckedAccount<'info>,
 
     #[account(mut)]
@@ -513,4 +562,12 @@ pub enum OracleError {
     RebalanceListTooLarge,
     #[msg("Account discriminator mismatch")]
     BadDiscriminator,
+    #[msg("Oracle already initialized")]
+    AlreadyInitialized,
+    #[msg("Timestamp is too far in the future")]
+    TimestampInFuture,
+    #[msg("Timestamp is too stale")]
+    TimestampTooStale,
+    #[msg("Timestamp must not regress behind the previously stored value")]
+    TimestampNotMonotonic,
 }
