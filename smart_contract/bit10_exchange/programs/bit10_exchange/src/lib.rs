@@ -23,7 +23,6 @@ const SOL_MINT_STR: &str = "So11111111111111111111111111111111111111112";
 const USDC_MINT_STR: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const BIT10_SOL_INDEX_MINT_STR: &str = "bitQG7BVz72Gu5L99bYRrZxTmFj8NPaFpT2uPp47yew";
 
-
 const SOL_TOKEN_ADDRESS: &str = "So11111111111111111111111111111111111111112";
 
 declare_id!("7CQDVZbDr9DtmzjYUFK2SM1GEGGc4o2qeYoUBfFyYb9N");
@@ -37,12 +36,12 @@ const ORACLE_DISCRIMINATOR_LEN: usize = 8;
 
 const BIT10_DECIMALS: u128 = 1_000_000_000;
 const SOL_PRECISION: u128 = 1_000_000_000;
-const USDC_PRECISION: u128 = 1_000_000; 
+const USDC_PRECISION: u128 = 1_000_000;
 
 const FEE_NUMERATOR: u128 = 5;
 const FEE_DENOMINATOR: u128 = 1000;
 
-const MAX_SANE_PRICE: u64 = 10_000_000_000_000_000;
+const MAX_SANE_PRICE: u64 = 100_000_000_000_000;
 
 #[program]
 pub mod bit10_exchange {
@@ -53,6 +52,7 @@ pub mod bit10_exchange {
         token_in_amount: u64,
         token_in_address: Pubkey,
         token_out_address: Pubkey,
+        min_token_out_amount: u64,
     ) -> Result<MintResult> {
         let sol_marker: Pubkey = SOL_MINT_STR
             .parse()
@@ -160,6 +160,10 @@ pub mod bit10_exchange {
             .map_err(|_| RouterError::MathOverflow)?;
 
         require!(token_out_amount > 0, RouterError::TokenOutAmountZero);
+        require!(
+            token_out_amount >= min_token_out_amount,
+            RouterError::SlippageExceeded
+        );
 
         let user_wallet_address = ctx.accounts.user.key();
         let transaction_timestamp = transaction_timestamp_ns_string()?;
@@ -180,12 +184,12 @@ pub mod bit10_exchange {
             anchor_lang::solana_program::program::invoke(
                 &anchor_lang::solana_program::system_instruction::transfer(
                     ctx.accounts.user.key,
-                    ctx.accounts.recipient.key,
+                    ctx.accounts.vault_sol_pda.key,
                     token_in_amount,
                 ),
                 &[
                     ctx.accounts.user.to_account_info(),
-                    ctx.accounts.recipient.to_account_info(),
+                    ctx.accounts.vault_sol_pda.to_account_info(),
                     ctx.accounts.system_program.to_account_info(),
                 ],
             )?;
@@ -281,6 +285,7 @@ pub mod bit10_exchange {
         token_in_amount: u64,
         token_in_address: Pubkey,
         token_out_address: Pubkey,
+        min_token_out_lamports: u64,
     ) -> Result<BurnResult> {
         let sol_marker: Pubkey = SOL_MINT_STR
             .parse()
@@ -361,6 +366,10 @@ pub mod bit10_exchange {
             .map_err(|_| RouterError::MathOverflow)?;
 
         require!(token_out_lamports > 0, RouterError::TokenOutAmountZero);
+        require!(
+            token_out_lamports >= min_token_out_lamports,
+            RouterError::SlippageExceeded
+        );
 
         let vault_lamports = ctx.accounts.vault_sol_pda.to_account_info().lamports();
         require!(
@@ -391,6 +400,24 @@ pub mod bit10_exchange {
             &ctx.accounts.user.key(),
         )?;
 
+        let vault_bump = ctx.bumps.vault_sol_pda;
+        let vault_signer_seeds_inner: [&[u8]; 2] = [VAULT_SOL_SEED, &[vault_bump]];
+        let vault_signer_seeds_wrapper: [&[&[u8]]; 1] = [&vault_signer_seeds_inner];
+
+        anchor_lang::solana_program::program::invoke_signed(
+            &anchor_lang::solana_program::system_instruction::transfer(
+                ctx.accounts.vault_sol_pda.key,
+                ctx.accounts.user.key,
+                token_out_lamports,
+            ),
+            &[
+                ctx.accounts.vault_sol_pda.to_account_info(),
+                ctx.accounts.user.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+            &vault_signer_seeds_wrapper,
+        )?;
+
         let cpi_accounts = token_2022::Burn {
             mint: ctx.accounts.token_in_mint.to_account_info(),
             from: ctx.accounts.user_token_in_ata.to_account_info(),
@@ -401,6 +428,12 @@ pub mod bit10_exchange {
             cpi_accounts,
         );
         token2022_burn(cpi_ctx, token_in_amount)?;
+
+        emit!(BurnExecuted {
+            user: user_wallet_address,
+            burned: token_in_amount,
+            paid_out_lamports: token_out_lamports,
+        });
 
         Ok(BurnResult {
             token_in_amount: token_in_amount.to_string(),
@@ -539,8 +572,8 @@ fn decode_oracle(oracle: &UncheckedAccount) -> Result<OracleData> {
         let token_offset = bit10sol_tokens_offset + (i * TOKEN_DATA_LEN);
 
         let symbol_offset = token_offset + 32;
-        let market_cap_offset = token_offset + 32 + 10 + 32 + 8;
-        let token_address_offset = token_offset + 32 + 10 + 32 + 8 + 8;
+        let market_cap_offset = token_offset + 32 + 10 + 32 + 8; // id + symbol + name + price
+        let token_address_offset = token_offset + 32 + 10 + 32 + 8 + 8; // id + symbol + name + price + market_cap
 
         let symbol = read_bytes_fixed::<MAX_SYMBOL_LEN>(d, symbol_offset)?;
         let market_cap = read_u64_le(d, market_cap_offset)?;
@@ -595,7 +628,7 @@ fn log_index_weights(oracle_data: &OracleData) -> Result<()> {
 
     msg!("INDEX_WEIGHTS total_market_cap={}", total_market_cap);
 
-    for i in 0..(oracle_data.token_count as usize) {
+   for i in 0..(oracle_data.token_count as usize) {
         let mcap = oracle_data.tokens[i].market_cap as u128;
 
         let weight_basis_points: u128 = mcap
@@ -684,11 +717,16 @@ fn verify_token_account(
     require_keys_eq!(*account.owner, *token_program_id, RouterError::InvalidTokenInProgram);
 
     let data = account.try_borrow_data()?;
-    if data.len() < 64 {
+
+    const TOKEN_ACCOUNT_LEN: usize = 165;
+    const STATE_OFFSET: usize = 108;
+    if data.len() < TOKEN_ACCOUNT_LEN {
         return err!(RouterError::TokenMintDataTooSmall);
     }
     require!(data[0..32] == expected_mint.to_bytes(), RouterError::InvalidTokenAccountMint);
     require!(data[32..64] == expected_owner.to_bytes(), RouterError::InvalidTokenAccountOwner);
+
+    require!(data[STATE_OFFSET] != 0, RouterError::InvalidTokenAccountState);
     Ok(())
 }
 
@@ -785,6 +823,9 @@ pub struct MintCtx<'info> {
     #[account(seeds = [VAULT_AUTH_SEED], bump)]
     pub vault_authority: UncheckedAccount<'info>,
 
+    #[account(mut, seeds = [VAULT_SOL_SEED], bump)]
+    pub vault_sol_pda: UncheckedAccount<'info>,
+
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -814,6 +855,13 @@ pub struct BurnCtx<'info> {
 
     #[account(seeds = [VAULT_AUTH_SEED], bump)]
     pub vault_authority: UncheckedAccount<'info>,
+}
+
+#[event]
+pub struct BurnExecuted {
+    pub user: Pubkey,
+    pub burned: u64,
+    pub paid_out_lamports: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -899,4 +947,10 @@ pub enum RouterError {
 
     #[msg("Oracle price is out of sane bounds")]
     OraclePriceOutOfBounds,
+
+    #[msg("Token account is not in a valid initialized state")]
+    InvalidTokenAccountState,
+
+    #[msg("Output amount is below the caller's minimum (slippage)")]
+    SlippageExceeded,
 }

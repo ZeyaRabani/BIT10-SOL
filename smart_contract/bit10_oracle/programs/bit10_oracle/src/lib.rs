@@ -43,6 +43,8 @@ const OFF_REBALANCE_NEW_TOKENS:        usize = 1377;
 const OFF_REBALANCE_ADDED:             usize = 2357;
 const OFF_REBALANCE_REMOVED:           usize = 3337;
 const OFF_REBALANCE_RETAINED:          usize = 4317;
+const OFF_PENDING_AUTHORITY_FLAG:      usize = 5297;
+const OFF_PENDING_AUTHORITY:           usize = 5298;
 
 const TOKEN_DATA_LEN: usize = 122;
 const REBALANCE_TOKEN_DATA_LEN: usize = 98;
@@ -78,6 +80,15 @@ fn validate_timestamp(data: &[u8], offset: usize, new_ts: i64) -> Result<()> {
 
     let prev = i64::from_le_bytes(data[offset..offset + 8].try_into().unwrap());
     require!(new_ts >= prev, OracleError::TimestampNotMonotonic);
+    Ok(())
+}
+
+fn require_fresh_header_timestamp(data: &[u8], offset: usize) -> Result<()> {
+    let stored = i64::from_le_bytes(data[offset..offset + 8].try_into().unwrap());
+    require!(stored != 0, OracleError::HeaderNotSet);
+
+    let now = Clock::get()?.unix_timestamp;
+    require!(now - stored <= MAX_STALENESS_SECS, OracleError::TimestampTooStale);
     Ok(())
 }
 
@@ -154,24 +165,51 @@ pub mod bit10_oracle {
         **oracle_info.try_borrow_mut_lamports()? -= lamports;
         **authority_info.try_borrow_mut_lamports()? += lamports;
 
-        let mut data = oracle_info.try_borrow_mut_data()?;
-        for byte in data.iter_mut() {
-            *byte = 0;
-        }
+        oracle_info.assign(&anchor_lang::solana_program::system_program::ID);
+        oracle_info.realloc(0, false)?;
 
         msg!("Oracle force closed, {} lamports returned", lamports);
         Ok(())
     }
 
-    pub fn update_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
+    pub fn propose_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
+        require!(new_authority != Pubkey::default(), OracleError::InvalidAuthority);
+
         let oracle_info = ctx.accounts.oracle.to_account_info();
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
         verify_authority(&data, &ctx.accounts.authority.key())?;
 
-        data[OFF_AUTHORITY..OFF_AUTHORITY + 32].copy_from_slice(new_authority.as_ref());
+        write_u8(&mut data, OFF_PENDING_AUTHORITY_FLAG, 1);
+        data[OFF_PENDING_AUTHORITY..OFF_PENDING_AUTHORITY + 32].copy_from_slice(new_authority.as_ref());
 
-        msg!("Oracle authority rotated to {}", new_authority);
+        msg!("Oracle authority rotation proposed: {}", new_authority);
+        Ok(())
+    }
+
+    pub fn accept_authority(ctx: Context<AcceptAuthority>) -> Result<()> {
+        let oracle_info = ctx.accounts.oracle.to_account_info();
+        let mut data = oracle_info.try_borrow_mut_data()?;
+        check_discriminator(&data)?;
+
+        require!(
+            read_u8(&data, OFF_PENDING_AUTHORITY_FLAG) == 1,
+            OracleError::NoPendingAuthority
+        );
+        require!(
+            &data[OFF_PENDING_AUTHORITY..OFF_PENDING_AUTHORITY + 32]
+                == ctx.accounts.new_authority.key().as_ref(),
+            OracleError::Unauthorized
+        );
+
+        let new_authority_bytes: [u8; 32] =
+            data[OFF_PENDING_AUTHORITY..OFF_PENDING_AUTHORITY + 32].try_into().unwrap();
+        data[OFF_AUTHORITY..OFF_AUTHORITY + 32].copy_from_slice(&new_authority_bytes);
+
+        write_u8(&mut data, OFF_PENDING_AUTHORITY_FLAG, 0);
+        data[OFF_PENDING_AUTHORITY..OFF_PENDING_AUTHORITY + 32].fill(0);
+
+        msg!("Oracle authority rotated to {}", ctx.accounts.new_authority.key());
         Ok(())
     }
 
@@ -214,6 +252,7 @@ pub mod bit10_oracle {
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
         verify_authority(&data, &ctx.accounts.updater.key())?;
+        require_fresh_header_timestamp(&data, OFF_BIT10SOL_TIMESTAMP)?;
 
         for (i, token) in tokens.iter().enumerate() {
             let slot = (start_index as usize) + i;
@@ -339,6 +378,7 @@ pub mod bit10_oracle {
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
         verify_authority(&data, &ctx.accounts.updater.key())?;
+        require_fresh_header_timestamp(&data, OFF_REBALANCE_TIMESTAMP)?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_NEW_TOKENS, (start_index as usize) + i, token);
@@ -364,6 +404,7 @@ pub mod bit10_oracle {
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
         verify_authority(&data, &ctx.accounts.updater.key())?;
+        require_fresh_header_timestamp(&data, OFF_REBALANCE_TIMESTAMP)?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_ADDED, (start_index as usize) + i, token);
@@ -389,6 +430,7 @@ pub mod bit10_oracle {
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
         verify_authority(&data, &ctx.accounts.updater.key())?;
+        require_fresh_header_timestamp(&data, OFF_REBALANCE_TIMESTAMP)?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_REMOVED, (start_index as usize) + i, token);
@@ -414,6 +456,7 @@ pub mod bit10_oracle {
         let mut data = oracle_info.try_borrow_mut_data()?;
         check_discriminator(&data)?;
         verify_authority(&data, &ctx.accounts.updater.key())?;
+        require_fresh_header_timestamp(&data, OFF_REBALANCE_TIMESTAMP)?;
 
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_RETAINED, (start_index as usize) + i, token);
@@ -450,7 +493,7 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]
 pub struct ForceClose<'info> {
-    #[account(mut, seeds = [b"bit10-oracle"], bump)]
+   #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
     #[account(mut)]
@@ -459,15 +502,23 @@ pub struct ForceClose<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateAuthority<'info> {
-    #[account(mut, seeds = [b"bit10-oracle"], bump)]
+    #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
     pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
+pub struct AcceptAuthority<'info> {
+    #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
+    pub oracle: UncheckedAccount<'info>,
+
+    pub new_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
 pub struct UpdateOracle<'info> {
-   #[account(mut, seeds = [b"bit10-oracle"], bump)]
+    #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
     #[account(mut)]
@@ -570,4 +621,10 @@ pub enum OracleError {
     TimestampTooStale,
     #[msg("Timestamp must not regress behind the previously stored value")]
     TimestampNotMonotonic,
+    #[msg("Account is not owned by this program")]
+    InvalidOwner,
+    #[msg("No pending authority to accept")]
+    NoPendingAuthority,
+    #[msg("Header timestamp has not been set or validated yet")]
+    HeaderNotSet,
 }
