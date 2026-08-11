@@ -5,8 +5,6 @@ use anchor_lang::solana_program::program::invoke_signed;
 
 declare_id!("AFAEYYsCPmwLsd97XWVJxbWnB7tHFqQ41hUZGK2fKWZX");
 
-const AUTHORIZED_UPDATER: Pubkey = pubkey!("keyMikmFKNDSu1ykZXWFRDhTdMEasfcmFjHSD4pSh9y");
-
 pub const MAX_INDEX_TOKENS: usize = 10;
 pub const MAX_ID_LEN: usize = 32;
 pub const MAX_SYMBOL_LEN: usize = 10;
@@ -61,7 +59,12 @@ const OFF_AUTHORITY_PROPOSED_AT:       usize = 5338;
 const OFF_PAUSED:                      usize = 5346;
 const OFF_PENDING_CLOSE_FLAG:          usize = 5347;
 const OFF_PENDING_CLOSE_AT:            usize = 5348;
+const OFF_BIT10SOL_TOKENS_READY:       usize = 5356;
+const OFF_REBALANCE_DATA_READY:        usize = 5357;
+const OFF_RESERVED:                    usize = 5358;
+const RESERVED_LEN: usize = 67;
 
+const _: () = assert!(OFF_RESERVED + RESERVED_LEN == 5425);
 const _: () = assert!(
     OFF_REBALANCE_RETAINED + (MAX_REBALANCE_LIST_SIZE * REBALANCE_TOKEN_DATA_LEN)
         == OFF_PENDING_AUTHORITY_FLAG
@@ -84,6 +87,66 @@ fn write_u64(data: &mut [u8], offset: usize, val: u64) {
 
 fn read_u8(data: &[u8], offset: usize) -> u8 {
     data[offset]
+}
+
+fn read_i64(data: &[u8], offset: usize) -> i64 {
+    i64::from_le_bytes(data[offset..offset + 8].try_into().unwrap())
+}
+
+fn require_price_skew(data: &[u8], new_ts: i64, peer_timestamp_offsets: &[usize]) -> Result<()> {
+    for &offset in peer_timestamp_offsets {
+        let peer_ts = read_i64(data, offset);
+        if peer_ts != 0 {
+            let skew = new_ts
+                .saturating_sub(peer_ts)
+                .max(peer_ts.saturating_sub(new_ts));
+            require!(skew <= MAX_PRICE_SKEW_SECS, OracleError::PriceTimestampSkew);
+        }
+    }
+    Ok(())
+}
+
+fn try_mark_bit10sol_tokens_ready(data: &mut [u8]) {
+    let count = read_u8(data, OFF_BIT10SOL_TOKEN_COUNT) as usize;
+    if count == 0 {
+        write_u8(data, OFF_BIT10SOL_TOKENS_READY, 1);
+        return;
+    }
+
+    for i in 0..count {
+        let base = OFF_BIT10SOL_TOKENS + i * TOKEN_DATA_LEN;
+        if data[base + 90..base + 122] == [0u8; 32] {
+            return;
+        }
+    }
+
+    write_u8(data, OFF_BIT10SOL_TOKENS_READY, 1);
+}
+
+fn rebalance_list_ready(
+    data: &[u8],
+    count_offset: usize,
+    array_base: usize,
+) -> bool {
+    let count = read_u8(data, count_offset) as usize;
+    for i in 0..count {
+        let base = array_base + i * REBALANCE_TOKEN_DATA_LEN;
+        if data[base..base + 32] == [0u8; 32] {
+            return false;
+        }
+    }
+    true
+}
+
+fn try_mark_rebalance_data_ready(data: &mut [u8]) {
+    let ready = rebalance_list_ready(data, OFF_REBALANCE_NEW_TOKEN_COUNT, OFF_REBALANCE_NEW_TOKENS)
+        && rebalance_list_ready(data, OFF_REBALANCE_ADDED_COUNT, OFF_REBALANCE_ADDED)
+        && rebalance_list_ready(data, OFF_REBALANCE_REMOVED_COUNT, OFF_REBALANCE_REMOVED)
+        && rebalance_list_ready(data, OFF_REBALANCE_RETAINED_COUNT, OFF_REBALANCE_RETAINED);
+
+    if ready {
+        write_u8(data, OFF_REBALANCE_DATA_READY, 1);
+    }
 }
 
 fn check_discriminator(data: &[u8]) -> Result<()> {
@@ -177,8 +240,6 @@ pub mod bit10_oracle {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        verify_updater(&ctx.accounts.authority.key())?;
-
         let oracle_info    = ctx.accounts.oracle.to_account_info();
         let authority_info = ctx.accounts.authority.to_account_info();
         let system_program = ctx.accounts.system_program.to_account_info();
@@ -415,6 +476,58 @@ pub mod bit10_oracle {
         Ok(())
     }
 
+    pub fn update_core_prices(
+        ctx: Context<UpdateOracle>,
+        timestamp: i64,
+        bit10sol_price: u64,
+        sol_price: u64,
+        sol_market_cap: u64,
+        usdc_price: u64,
+        usdc_market_cap: u64,
+    ) -> Result<()> {
+        let oracle_info = ctx.accounts.oracle.to_account_info();
+        let mut data = oracle_info.try_borrow_mut_data()?;
+        check_discriminator(&data)?;
+        verify_authority(&data, &ctx.accounts.updater.key())?;
+        require_not_paused(&data)?;
+
+        let prev_bit10 = u64::from_le_bytes(data[OFF_BIT10SOL_PRICE..OFF_BIT10SOL_PRICE + 8].try_into().unwrap());
+        let prev_sol = u64::from_le_bytes(data[OFF_SOL_PRICE..OFF_SOL_PRICE + 8].try_into().unwrap());
+        let prev_usdc = u64::from_le_bytes(data[OFF_USDC_PRICE..OFF_USDC_PRICE + 8].try_into().unwrap());
+
+        validate_timestamp(&data, OFF_BIT10SOL_TIMESTAMP, timestamp)?;
+        validate_timestamp(&data, OFF_SOL_TIMESTAMP, timestamp)?;
+        validate_timestamp(&data, OFF_USDC_TIMESTAMP, timestamp)?;
+
+        require_price_sane(bit10sol_price, prev_bit10)?;
+        require_price_sane(sol_price, prev_sol)?;
+        require_price_sane(usdc_price, prev_usdc)?;
+
+        write_i64(&mut data, OFF_BIT10SOL_TIMESTAMP, timestamp);
+        write_u64(&mut data, OFF_BIT10SOL_PRICE, bit10sol_price);
+        write_i64(&mut data, OFF_SOL_TIMESTAMP, timestamp);
+        write_u64(&mut data, OFF_SOL_PRICE, sol_price);
+        write_u64(&mut data, OFF_SOL_MARKET_CAP, sol_market_cap);
+        write_i64(&mut data, OFF_USDC_TIMESTAMP, timestamp);
+        write_u64(&mut data, OFF_USDC_PRICE, usdc_price);
+        write_u64(&mut data, OFF_USDC_MARKET_CAP, usdc_market_cap);
+
+        emit!(CorePricesUpdated {
+            timestamp,
+            bit10sol_price,
+            sol_price,
+            usdc_price,
+        });
+        msg!(
+            "Core prices updated atomically: bit10={}, sol={}, usdc={}, ts={}",
+            bit10sol_price,
+            sol_price,
+            usdc_price,
+            timestamp
+        );
+        Ok(())
+    }
+
     pub fn update_bit10sol_header(
         ctx: Context<UpdateOracle>,
         timestamp: i64,
@@ -429,13 +542,15 @@ pub mod bit10_oracle {
         verify_authority(&data, &ctx.accounts.updater.key())?;
         require_not_paused(&data)?;
         validate_timestamp(&data, OFF_BIT10SOL_TIMESTAMP, timestamp)?;
+        require_price_skew(&data, timestamp, &[OFF_SOL_TIMESTAMP, OFF_USDC_TIMESTAMP])?;
         let prev_price = u64::from_le_bytes(data[OFF_BIT10SOL_PRICE..OFF_BIT10SOL_PRICE + 8].try_into().unwrap());
         require_price_sane(index_price, prev_price)?;
 
         write_i64(&mut data, OFF_BIT10SOL_TIMESTAMP, timestamp);
         write_u64(&mut data, OFF_BIT10SOL_PRICE, index_price);
         write_u8(&mut data, OFF_BIT10SOL_TOKEN_COUNT, token_count);
-        clear_slots_from(&mut data, OFF_BIT10SOL_TOKENS, TOKEN_DATA_LEN, token_count as usize, MAX_INDEX_TOKENS);
+        write_u8(&mut data, OFF_BIT10SOL_TOKENS_READY, 0);
+        clear_slots_from(&mut data, OFF_BIT10SOL_TOKENS, TOKEN_DATA_LEN, 0, MAX_INDEX_TOKENS);
 
         msg!("BIT10.SOL header: price={}, count={}, ts={}", index_price, token_count, timestamp);
         Ok(())
@@ -471,6 +586,8 @@ pub mod bit10_oracle {
             msg!("Stored token slot {}: price={}", slot, token.price);
         }
 
+        try_mark_bit10sol_tokens_ready(&mut data);
+
         msg!("BIT10.SOL chunk: start={}, len={}", start_index, tokens.len());
         Ok(())
     }
@@ -487,6 +604,7 @@ pub mod bit10_oracle {
         verify_authority(&data, &ctx.accounts.updater.key())?;
         require_not_paused(&data)?;
         validate_timestamp(&data, OFF_SOL_TIMESTAMP, timestamp)?;
+        require_price_skew(&data, timestamp, &[OFF_BIT10SOL_TIMESTAMP])?;
         let prev_price = u64::from_le_bytes(data[OFF_SOL_PRICE..OFF_SOL_PRICE + 8].try_into().unwrap());
         require_price_sane(price, prev_price)?;
 
@@ -510,6 +628,7 @@ pub mod bit10_oracle {
         verify_authority(&data, &ctx.accounts.updater.key())?;
         require_not_paused(&data)?;
         validate_timestamp(&data, OFF_USDC_TIMESTAMP, timestamp)?;
+        require_price_skew(&data, timestamp, &[OFF_BIT10SOL_TIMESTAMP])?;
         let prev_price = u64::from_le_bytes(data[OFF_USDC_PRICE..OFF_USDC_PRICE + 8].try_into().unwrap());
         require_price_sane(price, prev_price)?;
 
@@ -577,11 +696,12 @@ pub mod bit10_oracle {
         write_u8(&mut data,  OFF_REBALANCE_ADDED_COUNT,     added_count);
         write_u8(&mut data,  OFF_REBALANCE_REMOVED_COUNT,   removed_count);
         write_u8(&mut data,  OFF_REBALANCE_RETAINED_COUNT,  retained_count);
+        write_u8(&mut data, OFF_REBALANCE_DATA_READY, 0);
 
-        clear_slots_from(&mut data, OFF_REBALANCE_NEW_TOKENS, REBALANCE_TOKEN_DATA_LEN, new_token_count as usize, MAX_INDEX_TOKENS);
-        clear_slots_from(&mut data, OFF_REBALANCE_ADDED,      REBALANCE_TOKEN_DATA_LEN, added_count as usize,     MAX_REBALANCE_LIST_SIZE);
-        clear_slots_from(&mut data, OFF_REBALANCE_REMOVED,    REBALANCE_TOKEN_DATA_LEN, removed_count as usize,   MAX_REBALANCE_LIST_SIZE);
-        clear_slots_from(&mut data, OFF_REBALANCE_RETAINED,   REBALANCE_TOKEN_DATA_LEN, retained_count as usize,  MAX_REBALANCE_LIST_SIZE);
+        clear_slots_from(&mut data, OFF_REBALANCE_NEW_TOKENS, REBALANCE_TOKEN_DATA_LEN, 0, MAX_INDEX_TOKENS);
+        clear_slots_from(&mut data, OFF_REBALANCE_ADDED,      REBALANCE_TOKEN_DATA_LEN, 0, MAX_REBALANCE_LIST_SIZE);
+        clear_slots_from(&mut data, OFF_REBALANCE_REMOVED,    REBALANCE_TOKEN_DATA_LEN, 0, MAX_REBALANCE_LIST_SIZE);
+        clear_slots_from(&mut data, OFF_REBALANCE_RETAINED,   REBALANCE_TOKEN_DATA_LEN, 0, MAX_REBALANCE_LIST_SIZE);
 
         msg!(
             "Rebalance header: index_value={}, price_to_buy={}, new={}, added={}, removed={}, retained={}, ts={}",
@@ -617,6 +737,7 @@ pub mod bit10_oracle {
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_NEW_TOKENS, (start_index as usize) + i, token);
         }
+        try_mark_rebalance_data_ready(&mut data);
         msg!("Rebalance new_tokens chunk: start={}, len={}", start_index, tokens.len());
         Ok(())
     }
@@ -647,6 +768,7 @@ pub mod bit10_oracle {
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_ADDED, (start_index as usize) + i, token);
         }
+        try_mark_rebalance_data_ready(&mut data);
         msg!("Rebalance added chunk: start={}, len={}", start_index, tokens.len());
         Ok(())
     }
@@ -677,6 +799,7 @@ pub mod bit10_oracle {
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_REMOVED, (start_index as usize) + i, token);
         }
+        try_mark_rebalance_data_ready(&mut data);
         msg!("Rebalance removed chunk: start={}, len={}", start_index, tokens.len());
         Ok(())
     }
@@ -707,14 +830,10 @@ pub mod bit10_oracle {
         for (i, token) in tokens.iter().enumerate() {
             write_rebalance_token(&mut data, OFF_REBALANCE_RETAINED, (start_index as usize) + i, token);
         }
+        try_mark_rebalance_data_ready(&mut data);
         msg!("Rebalance retained chunk: start={}, len={}", start_index, tokens.len());
         Ok(())
     }
-}
-
-fn verify_updater(updater: &Pubkey) -> Result<()> {
-    require!(*updater == AUTHORIZED_UPDATER, OracleError::Unauthorized);
-    Ok(())
 }
 
 fn verify_authority(data: &[u8], signer: &Pubkey) -> Result<()> {
@@ -725,6 +844,7 @@ fn verify_authority(data: &[u8], signer: &Pubkey) -> Result<()> {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
+    /// CHECK: Oracle PDA; seeds and bump validated below.
     #[account(mut, seeds = [b"bit10-oracle"], bump)]
     pub oracle: UncheckedAccount<'info>,
 
@@ -736,6 +856,7 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]
 pub struct Migrate<'info> {
+    /// CHECK: Oracle PDA; seeds, bump, and owner validated below.
     #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
@@ -747,6 +868,7 @@ pub struct Migrate<'info> {
 
 #[derive(Accounts)]
 pub struct ForceClose<'info> {
+    /// CHECK: Oracle PDA; seeds, bump, and owner validated below.
     #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
@@ -756,6 +878,7 @@ pub struct ForceClose<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateAuthority<'info> {
+    /// CHECK: Oracle PDA; seeds, bump, and owner validated below.
     #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
@@ -764,6 +887,7 @@ pub struct UpdateAuthority<'info> {
 
 #[derive(Accounts)]
 pub struct AcceptAuthority<'info> {
+    /// CHECK: Oracle PDA; seeds, bump, and owner validated below.
     #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
@@ -772,6 +896,7 @@ pub struct AcceptAuthority<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateOracle<'info> {
+    /// CHECK: Oracle PDA; seeds, bump, and owner validated below.
     #[account(mut, seeds = [b"bit10-oracle"], bump, owner = crate::ID @ OracleError::InvalidOwner)]
     pub oracle: UncheckedAccount<'info>,
 
@@ -779,6 +904,8 @@ pub struct UpdateOracle<'info> {
     pub updater: Signer<'info>,
 }
 
+#[account(zero_copy(unsafe))]
+#[repr(C)]
 pub struct OracleState {
     pub authority: Pubkey,
 
@@ -810,6 +937,17 @@ pub struct OracleState {
     pub rebalance_added: [RebalanceTokenData; MAX_REBALANCE_LIST_SIZE],
     pub rebalance_removed: [RebalanceTokenData; MAX_REBALANCE_LIST_SIZE],
     pub rebalance_retained: [RebalanceTokenData; MAX_REBALANCE_LIST_SIZE],
+
+    pub pending_authority_flag: u8,
+    pub pending_authority: Pubkey,
+    pub pending_authority_expiry: i64,
+    pub authority_proposed_at: i64,
+    pub paused: u8,
+    pub pending_close_flag: u8,
+    pub pending_close_at: i64,
+    pub bit10sol_tokens_ready: u8,
+    pub rebalance_data_ready: u8,
+    pub _reserved: [u8; RESERVED_LEN],
 }
 
 impl OracleState {
@@ -825,10 +963,14 @@ impl OracleState {
         + (MAX_REBALANCE_LIST_SIZE * REBALANCE_TOKEN_DATA_LEN)
         + (MAX_REBALANCE_LIST_SIZE * REBALANCE_TOKEN_DATA_LEN)
         + (MAX_REBALANCE_LIST_SIZE * REBALANCE_TOKEN_DATA_LEN)
-        + 128;
+        + 1 + 32 + 8 + 8 + 1 + 1 + 8 + 1 + 1 + RESERVED_LEN;
+
+    const _LEN_SANITY: () = assert!(Self::LEN == 5425);
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+#[zero_copy(unsafe)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Default)]
+#[repr(C)]
 pub struct TokenData {
     pub id: [u8; MAX_ID_LEN],
     pub symbol: [u8; MAX_SYMBOL_LEN],
@@ -838,7 +980,9 @@ pub struct TokenData {
     pub token_address: [u8; 32],
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+#[zero_copy(unsafe)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Default)]
+#[repr(C)]
 pub struct RebalanceTokenData {
     pub id: [u8; MAX_ID_LEN],
     pub symbol: [u8; MAX_SYMBOL_LEN],
@@ -846,6 +990,14 @@ pub struct RebalanceTokenData {
     pub price: u64,
     pub market_cap: u64,
     pub no_of_tokens: u64,
+}
+
+#[event]
+pub struct CorePricesUpdated {
+    pub timestamp: i64,
+    pub bit10sol_price: u64,
+    pub sol_price: u64,
+    pub usdc_price: u64,
 }
 
 #[event]
@@ -883,7 +1035,7 @@ pub struct OracleUnpaused {
 
 #[error_code]
 pub enum OracleError {
-    #[msg("Unauthorized: only the hardcoded updater wallet can update")]
+    #[msg("Unauthorized: signer does not match the stored oracle authority")]
     Unauthorized,
     #[msg("Too many tokens: max is 10")]
     TooManyTokens,
@@ -933,4 +1085,6 @@ pub enum OracleError {
     InvalidTokenAddress,
     #[msg("Arithmetic overflow")]
     MathOverflow,
+    #[msg("Core price timestamps differ by more than the allowed skew")]
+    PriceTimestampSkew,
 }
